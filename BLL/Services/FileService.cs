@@ -2,7 +2,9 @@
 
 using AutoMapper;
 using BLL.Models;
+using DataAccess.Entities;
 using DataAccess.Repositories;
+using Repositories;
 
 namespace BLL.Services;
 
@@ -31,7 +33,7 @@ public class FileService : IFileService
 
     public async Task AddFileAsync(FileModel fileModel)
     {
-        var file = _mapper.Map<File>(fileModel);
+        var file = _mapper.Map<FileItem>(fileModel);
         await _unitOfWork.Files.AddAsync(file);
         await _unitOfWork.CompleteAsync();
     }

@@ -1,9 +1,11 @@
 ﻿// FileManager.DataAccess/Repositories/Repository.cs
 
 using System.Linq.Expressions;
+using DataAccess;
+using DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
 
-namespace DataAccess.Repositories;
+namespace Repositories;
 
 public class Repository<T> : IRepository<T> where T : class
 {

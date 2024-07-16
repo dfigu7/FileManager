@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BLL.Models;
+using BLL.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace FMAPI.Controllers;
 
@@ -27,7 +29,8 @@ public class FoldersController(IFolderService folderService) : ControllerBase
     public async Task<ActionResult> AddFolder([FromBody] FolderModel folderModel)
     {
         await _folderService.AddFolderAsync(folderModel);
-        return CreatedAtAction(nameof(GetFolderById), new { id = folderModel.Id }, folderModel);
+        return Ok();
+        //return CreatedAtAction(nameof(GetFolderById), new { id = folderModel.Id }, folderModel);
     }
 
     [HttpPut("{id}/rename")]

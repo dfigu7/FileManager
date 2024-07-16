@@ -9,13 +9,13 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         // Mapping configurations for File entity and FileModel
-        CreateMap<File, FileModel>()
+        CreateMap<FileItem, FileModel>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Path, opt => opt.MapFrom(src => src.Path))
             .ForMember(dest => dest.FolderId, opt => opt.MapFrom(src => src.FolderId));
 
-        CreateMap<FileModel, File>()
+        CreateMap<FileModel, FileItem>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Path, opt => opt.MapFrom(src => src.Path))
@@ -23,13 +23,8 @@ public class MappingProfile : Profile
 
         // Mapping configurations for Folder entity and FolderModel
         CreateMap<Folder, FolderModel>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.ParentFolderId, opt => opt.MapFrom(src => src.ParentFolderId));
+            .ForMember(dest => dest.ParentFolderId, opt => opt.MapFrom(src => src.ParentFolderId)).ReverseMap();
 
-        CreateMap<FolderModel, Folder>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.ParentFolderId, opt => opt.MapFrom(src => src.ParentFolderId));
     }
 }

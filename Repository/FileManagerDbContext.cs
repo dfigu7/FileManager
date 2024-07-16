@@ -1,14 +1,12 @@
 ﻿// FileManager.DataAccess/FileManagerDbContext.cs
 
+
 using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
-using File = System.IO.File;
-
-namespace DataAccess;
 
 public class FileManagerDbContext(DbContextOptions<FileManagerDbContext> options) : DbContext(options)
 {
-    public DbSet<File> Files { get; set; }
+    public DbSet<FileItem> Files { get; set; }
     public DbSet<Folder> Folders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
