@@ -2,7 +2,7 @@
 
 namespace DataAccess.Entities;
 
-public class File
+public class FileItem
 {
     public int Id { get; set; }
     public string Name { get; set; }

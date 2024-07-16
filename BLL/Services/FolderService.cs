@@ -2,6 +2,8 @@
 
 using AutoMapper;
 using BLL.Models;
+using DataAccess.Entities;
+using DataAccess.Repositories;
 
 namespace BLL.Services;
 
