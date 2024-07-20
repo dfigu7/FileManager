@@ -1,6 +1,4 @@
-﻿// FileManager.BLL/Services/IFolderService.cs
-
-using BLL.Models;
+﻿using BLL.DTO;
 
 namespace BLL.Services;
 

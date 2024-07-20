@@ -1,60 +1,52 @@
-﻿// FileManager.BLL/Services/FileService.cs
-
-using AutoMapper;
-using BLL.Models;
+﻿using AutoMapper;
+using BLL.DTO;
 using DataAccess.Entities;
-using DataAccess.Repositories;
-using Repositories;
+using Repository;
 
-namespace BLL.Services;
-
-public class FileService : IFileService
+namespace BLL.Services
 {
-    private readonly IMapper _mapper;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public FileService(IUnitOfWork unitOfWork, IMapper mapper)
+    public class FileService(IUnitOfWork unitOfWork, IMapper mapper) : IFileService
     {
-        _unitOfWork = unitOfWork;
-        _mapper = mapper;
-    }
-
-    public async Task<FileModel> GetFileByIdAsync(int id)
-    {
-        var file = await _unitOfWork.Files.GetByIdAsync(id);
-        return _mapper.Map<FileModel>(file);
-    }
-
-    public async Task<IEnumerable<FileModel>> GetAllFilesAsync()
-    {
-        var files = await _unitOfWork.Files.GetAllAsync();
-        return _mapper.Map<IEnumerable<FileModel>>(files);
-    }
-
-    public async Task AddFileAsync(FileModel fileModel)
-    {
-        var file = _mapper.Map<FileItem>(fileModel);
-        await _unitOfWork.Files.AddAsync(file);
-        await _unitOfWork.CompleteAsync();
-    }
-
-    public async Task DeleteFileAsync(int id)
-    {
-        var file = await _unitOfWork.Files.GetByIdAsync(id);
-        if (file != null)
+        public async Task<FileModel?> GetFileByIdAsync(int id)
         {
-            _unitOfWork.Files.Remove(file);
-            await _unitOfWork.CompleteAsync();
+            var file = await unitOfWork.Files.GetByIdAsync(id);
+            return mapper.Map<FileModel>(file);
         }
-    }
 
-    public async Task MoveFileAsync(int fileId, int folderId)
-    {
-        var file = await _unitOfWork.Files.GetByIdAsync(fileId);
-        if (file != null)
+        public async Task<IEnumerable<FileModel>> GetAllFilesAsync()
         {
-            file.FolderId = folderId;
-            await _unitOfWork.CompleteAsync();
+            var files = await unitOfWork.Files.GetAllAsync();
+            return mapper.Map<IEnumerable<FileModel>>(files);
+        }
+
+        public async Task AddFileAsync(FileModel fileModel)
+        {
+            var file = mapper.Map<FileItem>(fileModel);
+            file.DateCreated = DateTime.UtcNow;
+            file.DateChanged = DateTime.UtcNow;
+            await unitOfWork.Files.AddAsync(file);
+            await unitOfWork.CompleteAsync();
+        }
+
+        public async Task DeleteFileAsync(int id)
+        {
+            var file = await unitOfWork.Files.GetByIdAsync(id);
+            if (file != null)
+            {
+                unitOfWork.Files.Remove(file);
+                await unitOfWork.CompleteAsync();
+            }
+        }
+
+        public async Task MoveFileAsync(int fileId, int folderId)
+        {
+            var file = await unitOfWork.Files.GetByIdAsync(fileId);
+            if (file != null)
+            {
+                file.FolderId = folderId;
+                file.DateChanged = DateTime.UtcNow;
+                await unitOfWork.CompleteAsync();
+            }
         }
     }
 }

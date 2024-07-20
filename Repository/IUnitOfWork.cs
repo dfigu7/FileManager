@@ -1,6 +1,8 @@
 ﻿// FileManager.DataAccess/Repositories/IUnitOfWork.cs
 
-namespace DataAccess.Repositories;
+using DataAccess.Repositories;
+
+namespace Repository;
 
 public interface IUnitOfWork : IDisposable
 {

@@ -1,69 +1,63 @@
-﻿// FileManager.BLL/Services/FolderService.cs
-
-using AutoMapper;
-using BLL.Models;
+﻿using AutoMapper;
+using BLL.DTO;
 using DataAccess.Entities;
-using DataAccess.Repositories;
+using Repository;
 
-namespace BLL.Services;
-
-public class FolderService : IFolderService
+namespace BLL.Services
 {
-    private readonly IMapper _mapper;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public FolderService(IUnitOfWork unitOfWork, IMapper mapper)
+    public class FolderService(IUnitOfWork unitOfWork, IMapper mapper) : IFolderService
     {
-        _unitOfWork = unitOfWork;
-        _mapper = mapper;
-    }
-
-    public async Task<FolderModel> GetFolderByIdAsync(int id)
-    {
-        var folder = await _unitOfWork.Folders.GetByIdAsync(id);
-        return _mapper.Map<FolderModel>(folder);
-    }
-
-    public async Task<IEnumerable<FolderModel>> GetAllFoldersAsync()
-    {
-        var folders = await _unitOfWork.Folders.GetAllAsync();
-        return _mapper.Map<IEnumerable<FolderModel>>(folders);
-    }
-
-    public async Task AddFolderAsync(FolderModel folderModel)
-    {
-        var folder = _mapper.Map<Folder>(folderModel);
-        await _unitOfWork.Folders.AddAsync(folder);
-        await _unitOfWork.CompleteAsync();
-    }
-
-    public async Task RenameFolderAsync(int id, string newName)
-    {
-        var folder = await _unitOfWork.Folders.GetByIdAsync(id);
-        if (folder != null)
+        public async Task<FolderModel> GetFolderByIdAsync(int id)
         {
-            folder.Name = newName;
-            await _unitOfWork.CompleteAsync();
+            var folder = await unitOfWork.Folders.GetByIdAsync(id);
+            return mapper.Map<FolderModel>(folder);
         }
-    }
 
-    public async Task DeleteFolderAsync(int id)
-    {
-        var folder = await _unitOfWork.Folders.GetByIdAsync(id);
-        if (folder != null)
+        public async Task<IEnumerable<FolderModel>> GetAllFoldersAsync()
         {
-            _unitOfWork.Folders.Remove(folder);
-            await _unitOfWork.CompleteAsync();
+            var folders = await unitOfWork.Folders.GetAllAsync();
+            return mapper.Map<IEnumerable<FolderModel>>(folders);
         }
-    }
 
-    public async Task MoveFolderAsync(int folderId, int parentFolderId)
-    {
-        var folder = await _unitOfWork.Folders.GetByIdAsync(folderId);
-        if (folder != null)
+        public async Task AddFolderAsync(FolderModel folderModel)
         {
-            folder.ParentFolderId = parentFolderId;
-            await _unitOfWork.CompleteAsync();
+            var folder = mapper.Map<Folder>(folderModel);
+            folder.DateCreated = DateTime.UtcNow;
+            folder.DateChanged = DateTime.UtcNow;
+            await unitOfWork.Folders.AddAsync(folder);
+            await unitOfWork.CompleteAsync();
+        }
+
+        public async Task RenameFolderAsync(int id, string newName)
+        {
+            var folder = await unitOfWork.Folders.GetByIdAsync(id);
+            if (folder != null)
+            {
+                folder.Name = newName;
+                folder.DateChanged = DateTime.UtcNow;
+                await unitOfWork.CompleteAsync();
+            }
+        }
+
+        public async Task DeleteFolderAsync(int id)
+        {
+            var folder = await unitOfWork.Folders.GetByIdAsync(id);
+            if (folder != null)
+            {
+                unitOfWork.Folders.Remove(folder);
+                await unitOfWork.CompleteAsync();
+            }
+        }
+
+        public async Task MoveFolderAsync(int folderId, int parentFolderId)
+        {
+            var folder = await unitOfWork.Folders.GetByIdAsync(folderId);
+            if (folder != null)
+            {
+                folder.ParentFolderId = parentFolderId;
+                folder.DateChanged = DateTime.UtcNow;
+                await unitOfWork.CompleteAsync();
+            }
         }
     }
 }

@@ -1,6 +1,9 @@
 ﻿// FileManager.DataAccess/Repositories/UnitOfWork.cs
 
-namespace DataAccess.Repositories;
+using DataAccess;
+using DataAccess.Repositories;
+
+namespace Repository;
 
 public class UnitOfWork : IUnitOfWork
 {

@@ -2,12 +2,8 @@
 
 using DataAccess.Entities;
 using Repositories;
+using Repository;
 
 namespace DataAccess.Repositories;
 
-public class FolderRepository : Repository<Folder>, IFolderRepository
-{
-    public FolderRepository(FileManagerDbContext context) : base(context)
-    {
-    }
-}
+public class FolderRepository(FileManagerDbContext context) : Repository<Folder>(context), IFolderRepository;

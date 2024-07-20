@@ -1,12 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Repository.Migrations
+namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class migrationTest : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -18,14 +19,17 @@ namespace Repository.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    ParentFolderId = table.Column<int>(type: "integer", nullable: true)
+                    ParentFolderId = table.Column<int>(type: "integer", nullable: true),
+                    DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateChanged = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    FolderId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Folders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Folders_Folders_ParentFolderId",
-                        column: x => x.ParentFolderId,
+                        name: "FK_Folders_Folders_FolderId",
+                        column: x => x.FolderId,
                         principalTable: "Folders",
                         principalColumn: "Id");
                 });
@@ -38,7 +42,9 @@ namespace Repository.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Path = table.Column<string>(type: "text", nullable: false),
-                    FolderId = table.Column<int>(type: "integer", nullable: false)
+                    FolderId = table.Column<int>(type: "integer", nullable: false),
+                    DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    DateChanged = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -57,9 +63,9 @@ namespace Repository.Migrations
                 column: "FolderId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Folders_ParentFolderId",
+                name: "IX_Folders_FolderId",
                 table: "Folders",
-                column: "ParentFolderId");
+                column: "FolderId");
         }
 
         /// <inheritdoc />

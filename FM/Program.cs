@@ -1,46 +1,45 @@
 using BLL.Services;
-using DataAccess.Repositories;
+using DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Repository;
+
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-
-// Configure database context
-builder.Services.AddDbContext<FileManagerDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-// Configure repositories and unit of work
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-// Configure services
-builder.Services.AddScoped<IFileService, FileService>();
-builder.Services.AddScoped<IFolderService, FolderService>();
-
-// AutoMapper configuration
-builder.Services.AddAutoMapper(typeof(Program));
-
-// Add logging
-builder.Services.AddLogging();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddDbContext<FileManagerDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IFolderService, FolderService>();
+builder.Services.AddScoped<IFileService, FileService>();
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "File Manager API v1");
+    });
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

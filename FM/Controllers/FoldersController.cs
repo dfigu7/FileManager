@@ -1,4 +1,4 @@
-﻿using BLL.Models;
+﻿using BLL.DTO;
 using BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +30,7 @@ public class FoldersController(IFolderService folderService) : ControllerBase
     {
         await _folderService.AddFolderAsync(folderModel);
         return Ok();
-        //return CreatedAtAction(nameof(GetFolderById), new { id = folderModel.Id }, folderModel);
+       
     }
 
     [HttpPut("{id}/rename")]

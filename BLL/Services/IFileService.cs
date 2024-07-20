@@ -1,12 +1,10 @@
-﻿// FileManager.BLL/Services/IFileService.cs
-
-using BLL.Models;
+﻿using BLL.DTO;
 
 namespace BLL.Services;
 
 public interface IFileService
 {
-    Task<FileModel> GetFileByIdAsync(int id);
+    Task<FileModel?> GetFileByIdAsync(int id);
     Task<IEnumerable<FileModel>> GetAllFilesAsync();
     Task AddFileAsync(FileModel file);
     Task DeleteFileAsync(int id);

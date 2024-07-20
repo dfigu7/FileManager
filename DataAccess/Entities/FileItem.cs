@@ -1,12 +1,12 @@
-﻿// FileManager.DataAccess/Entities/File.cs
-
-namespace DataAccess.Entities;
+﻿namespace DataAccess.Entities;
 
 public class FileItem
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string Path { get; set; }
+    public required string Name { get; set; }
+    public required string Path { get; set; }
     public int FolderId { get; set; }
-    public Folder Folder { get; set; }
+    public Folder? Folder { get; set; }
+    public DateTime DateCreated { get; set; }
+    public DateTime DateChanged { get; set; }
 }
