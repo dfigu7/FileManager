@@ -2,7 +2,7 @@
 
 using System.Linq.Expressions;
 
-namespace DataAccess.Repositories;
+namespace Repository;
 
 public interface IRepository<T> where T : class
 {
@@ -11,4 +11,12 @@ public interface IRepository<T> where T : class
     Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
     Task AddAsync(T entity);
     void Remove(T entity);
+    void Update(T entity);
+    Task<int> CountAsync();
+    Task SaveChangesAsync();
+    Task DeleteAsync();
+    Task SaveAsync();
+    Task ReadAllBytesAsync();
+    
+
 }

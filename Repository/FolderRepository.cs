@@ -1,7 +1,6 @@
 ﻿// FileManager.DataAccess/Repositories/FolderRepository.cs
 
 using DataAccess.Entities;
-using Repositories;
 using Repository;
 
 namespace DataAccess.Repositories;

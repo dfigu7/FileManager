@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccess.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,16 +22,11 @@ namespace DataAccess.Migrations
                     ParentFolderId = table.Column<int>(type: "integer", nullable: true),
                     DateCreated = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     DateChanged = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    FolderId = table.Column<int>(type: "integer", nullable: true)
+                    Path = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Folders", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Folders_Folders_FolderId",
-                        column: x => x.FolderId,
-                        principalTable: "Folders",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -60,11 +55,6 @@ namespace DataAccess.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_Files_FolderId",
                 table: "Files",
-                column: "FolderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Folders_FolderId",
-                table: "Folders",
                 column: "FolderId");
         }
 

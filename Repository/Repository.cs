@@ -2,11 +2,9 @@
 
 using System.Linq.Expressions;
 using DataAccess;
-using DataAccess.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Repository;
 
-namespace Repositories;
+namespace Repository;
 
 public class Repository<T>(FileManagerDbContext context) : IRepository<T>
     where T : class
@@ -37,5 +35,40 @@ public class Repository<T>(FileManagerDbContext context) : IRepository<T>
     public void Remove(T entity)
     {
         _dbSet.Remove(entity);
+    }
+
+    public void Update(T entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<int> CountAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveChangesAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task SaveAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task ReadAllBytesAsync()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteChangesAsync()
+    {
+        throw new NotImplementedException();
     }
 }

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(FileManagerDbContext))]
-    [Migration("20240718144211_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20240723191621_Idkkkk")]
+    partial class Idkkkk
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -71,9 +71,6 @@ namespace DataAccess.Migrations
                     b.Property<DateTime>("DateCreated")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int?>("FolderId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -81,9 +78,12 @@ namespace DataAccess.Migrations
                     b.Property<int?>("ParentFolderId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Path")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("FolderId");
+                    b.HasIndex("ParentFolderId");
 
                     b.ToTable("Folders");
                 });
@@ -101,9 +101,12 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("DataAccess.Entities.Folder", b =>
                 {
-                    b.HasOne("DataAccess.Entities.Folder", null)
+                    b.HasOne("DataAccess.Entities.Folder", "ParentFolder")
                         .WithMany("SubFolders")
-                        .HasForeignKey("FolderId");
+                        .HasForeignKey("ParentFolderId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("ParentFolder");
                 });
 
             modelBuilder.Entity("DataAccess.Entities.Folder", b =>

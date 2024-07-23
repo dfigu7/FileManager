@@ -7,6 +7,7 @@ namespace DataAccess
     {
         public DbSet<FileItem> Files { get; set; }
         public DbSet<Folder> Folders { get; set; }
+        
 
         public override int SaveChanges()
         {
@@ -33,6 +34,17 @@ namespace DataAccess
                 }
                 ((dynamic)entry.Entity).DateChanged = DateTime.UtcNow;
             }
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Folder>()
+                .HasMany(f => f.SubFolders)
+                .WithOne(f => f.ParentFolder)
+                .HasForeignKey(f => f.ParentFolderId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

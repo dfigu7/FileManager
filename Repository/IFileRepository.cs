@@ -2,7 +2,7 @@
 
 using DataAccess.Entities;
 
-namespace DataAccess.Repositories;
+namespace Repository;
 
 public interface IFileRepository : IRepository<FileItem>
 {

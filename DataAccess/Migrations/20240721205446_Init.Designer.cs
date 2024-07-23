@@ -3,6 +3,7 @@ using System;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataAccess.Migrations
 {
     [DbContext(typeof(FileManagerDbContext))]
-    partial class FileManagerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240721205446_Init")]
+    partial class Init
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -76,11 +79,10 @@ namespace DataAccess.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Path")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ParentFolderId");
 
                     b.ToTable("Folders");
                 });
@@ -98,19 +100,7 @@ namespace DataAccess.Migrations
 
             modelBuilder.Entity("DataAccess.Entities.Folder", b =>
                 {
-                    b.HasOne("DataAccess.Entities.Folder", "ParentFolder")
-                        .WithMany("SubFolders")
-                        .HasForeignKey("ParentFolderId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("ParentFolder");
-                });
-
-            modelBuilder.Entity("DataAccess.Entities.Folder", b =>
-                {
                     b.Navigation("Files");
-
-                    b.Navigation("SubFolders");
                 });
 #pragma warning restore 612, 618
         }
