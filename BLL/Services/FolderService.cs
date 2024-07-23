@@ -46,7 +46,7 @@ namespace BLL.Services
             if (folderModel.Name != null)
                 folder.Path = parentFolder == null
                     ? Path.Combine(_storagePath, folderModel.Name)
-                    : Path.Combine(_storagePath, parentFolder.Path, folderModel.Name);//s
+                    : Path.Combine(_storagePath, parentFolder.Path, folderModel.Name);//ss
 
             folder.DateCreated = DateTime.UtcNow;
             folder.DateChanged = DateTime.UtcNow;
