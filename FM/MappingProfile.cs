@@ -8,11 +8,12 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
+        CreateMap<FileModel, FileItem>().ReverseMap();
         // Mapping configurations for File 
         CreateMap<FileItem, FileModel>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+         
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Path, opt => opt.MapFrom(src => src.Path))
+            
             .ForMember(dest => dest.FolderId, opt => opt.MapFrom(src => src.FolderId));
 
       

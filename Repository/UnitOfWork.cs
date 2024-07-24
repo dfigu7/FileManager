@@ -1,7 +1,6 @@
 ﻿// FileManager.DataAccess/Repositories/UnitOfWork.cs
 
 using DataAccess;
-using DataAccess.Repositories;
 
 namespace Repository;
 
@@ -12,11 +11,11 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(FileManagerDbContext context)
     {
         _context = context;
-        Files = new FileRepository(_context);
+        Files = new FileItemRepository(_context);
         Folders = new FolderRepository(_context);
     }
 
-    public IFileRepository Files { get; }
+    public IFileItemRepository Files { get; }
     public IFolderRepository Folders { get; }
 
     public async Task<int> CompleteAsync()

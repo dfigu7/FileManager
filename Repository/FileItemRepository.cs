@@ -1,7 +1,68 @@
-﻿
+﻿using DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using DataAccess;
-using DataAccess.Entities;
 
-namespace Repository;
+namespace Repository
+{
+    public class FileItemRepository : IFileItemRepository
+    {
+        private readonly FileManagerDbContext _context;
 
-public class FileItemRepository(FileManagerDbContext context) : Repository<FileItem>(context), IFileItemRepository;
+        public FileItemRepository(FileManagerDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<FileItem> GetByIdAsync(int id)
+        {
+            return await _context.FileItems.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<FileItem>> GetAllAsync()
+        {
+            return await _context.FileItems.ToListAsync();
+        }
+        public async Task AddFileItemAsync(FileItem fileItem)
+        {
+            _context.FileItems.Add(fileItem);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<FileItem> GetFileItemByNameAsync(string fileName)
+        {
+            return await _context.FileItems.FirstOrDefaultAsync(f => f.Name == fileName);
+        }
+
+        public async Task AddAsync(FileItem fileItem)
+        {
+            if (string.IsNullOrEmpty(fileItem.FilePath))
+            {
+                throw new ArgumentException("FilePath cannot be null or empty.");
+            }
+            await _context.FileItems.AddAsync(fileItem);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var fileItem = await _context.FileItems.FindAsync(id);
+            if (fileItem != null)
+            {
+                _context.FileItems.Remove(fileItem);
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task MoveAsync(int fileId, int folderId)
+        {
+            var fileItem = await _context.FileItems.FindAsync(fileId);
+            if (fileItem != null)
+            {
+                fileItem.FolderId = folderId;
+                await _context.SaveChangesAsync();
+            }
+        }
+    }
+}

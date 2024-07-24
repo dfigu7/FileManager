@@ -1,75 +1,59 @@
-﻿using System.Diagnostics;
-using System.Net;
-using AutoMapper;
-using DataAccess.Entities;
+﻿using AutoMapper;
 using BLL.DTO;
-
-
+using DataAccess.Entities;
 using Repository;
-
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace BLL.Services
 {
-    public class FileItemService : IFileService
+    public class FileItemService : IFileItemService
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly IFileItemRepository _fileItemRepository;
         private readonly IMapper _mapper;
- 
-        private readonly IRepository<Folder> _folderRepository;
 
-      
-        public FileItemService(IUnitOfWork unitOfWork, IMapper mapper, IRepository<Folder> folderRepository)
+        public FileItemService(IFileItemRepository fileItemRepository, IMapper mapper)
         {
-            unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            this._unitOfWork = unitOfWork;
-            this._mapper = mapper;
-            this._folderRepository = folderRepository;
-            _folderRepository = folderRepository ?? throw new ArgumentNullException(nameof(folderRepository));
+            _fileItemRepository = fileItemRepository;
+            _mapper = mapper;
         }
 
-      
-        public FileItemService(IUnitOfWork unitOfWork, IMapper mapper, IRepository<Folder> folderRepository, SomeOtherDependency otherDependency)
-            : this(unitOfWork, mapper, folderRepository) 
+        public async Task<FileModel> GetByIdAsync(int id)
         {
-          
+            var fileItem = await _fileItemRepository.GetByIdAsync(id);
+            return _mapper.Map<FileModel>(fileItem);
+        }
+        public async Task AddFileItemAsync(FileItem fileItem)
+        {
+            await _fileItemRepository.AddFileItemAsync(fileItem);
         }
 
-        public Task<FileModel?> GetFileByIdAsync(int id)
+        public async Task<FileItem> GetFileItemByNameAsync(string fileName)
         {
-            throw new NotImplementedException();
+            return await _fileItemRepository.GetFileItemByNameAsync(fileName);
+        }
+        public async Task<IEnumerable<FileModel>> GetAllAsync()
+        {
+            var fileItems = await _fileItemRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<FileModel>>(fileItems);
         }
 
-        public Task<IEnumerable<FileModel>> GetAllFilesAsync()
+        public async Task AddFileAsync(FileModel file)
         {
-            throw new NotImplementedException();
+            var fileItem = _mapper.Map<FileItem>(file);
+            await _fileItemRepository.AddAsync(fileItem);
         }
 
-        public Task AddFileAsync(FileModel file)
+        public async Task DeleteFileAsync(int id)
         {
-            throw new NotImplementedException();
+            await _fileItemRepository.DeleteAsync(id);
         }
 
-        public Task DeleteFileAsync(int id)
+        public async Task MoveFileAsync(int fileId, int folderId)
         {
-            throw new NotImplementedException();
-        }
-
-        public Task MoveFileAsync(int fileId, int folderId)
-        {
-            throw new NotImplementedException();
+            await _fileItemRepository.MoveAsync(fileId, folderId);
         }
     }
 
-    public class SomeOtherDependency
-    {
-    }
-
-    public interface IFormFile
-    {
-        string FileName { get; }
-        Task CopyToAsync(Stream stream);
-        
-
-    }
+    
 }

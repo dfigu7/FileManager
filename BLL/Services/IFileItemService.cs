@@ -1,14 +1,18 @@
 ﻿using BLL.DTO;
+using DataAccess.Entities;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace BLL.Services;
-
-public interface IFileItemService
+namespace BLL.Services
 {
-    Task<FileModel> GetFileByIdAsync(int id);
-    Task<IEnumerable<FileModel>> GetAllFilesAsync();
-    Task AddFileAsync(FileModel file);
-    Task DeleteFileAsync(int id);
-    Task MoveFileAsync(int fileId, int folderId);
-    Task UploadFileAsync(IFormFile file, int folderId);
-    Task<byte[]> DownloadFileAsync(int id);
+    public interface IFileItemService{
+    Task AddFileItemAsync(FileItem fileItem);
+    Task<FileItem> GetFileItemByNameAsync(string fileName);
+
+    Task<FileModel> GetByIdAsync(int id);
+        Task<IEnumerable<FileModel>> GetAllAsync();
+        Task AddFileAsync(FileModel file);
+        Task DeleteFileAsync(int id);
+        Task MoveFileAsync(int fileId, int folderId);
+    }
 }

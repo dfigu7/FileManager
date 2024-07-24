@@ -2,6 +2,7 @@ using BLL;
 using BLL.Services;
 using DataAccess;
 using FMAPI;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Repository;
@@ -16,15 +17,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IFolderService, FolderService>();
+builder.Services.AddScoped<IFileItemService, FileItemService>();
+builder.Services.AddScoped<IFileItemRepository, FileItemRepository>();
+
 
 // Register DbContext with the connection string
 builder.Services.AddDbContext<FileManagerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register unit of work and services
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IFolderService, FolderService>();
-builder.Services.AddScoped<IFileService, FileService>();
+
+
 
 var app = builder.Build();
 
@@ -44,6 +48,11 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
+
 app.MapControllers();
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+
 app.Run();
