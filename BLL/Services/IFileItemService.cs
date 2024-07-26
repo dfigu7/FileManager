@@ -11,8 +11,9 @@ namespace BLL.Services
 
     Task<FileModel> GetByIdAsync(int id);
         Task<IEnumerable<FileModel>> GetAllAsync();
-        Task AddFileAsync(FileModel file);
+        
         Task DeleteFileAsync(int id);
         Task MoveFileAsync(int fileId, int folderId);
+        Task AddFileAsync(FileItem fileModel);
     }
 }

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Repository;
 
 namespace FileManager.Controllers
 {
@@ -15,11 +16,14 @@ namespace FileManager.Controllers
     {
         private readonly IFileItemService _fileItemService;
         private readonly StorageSettings _storageSettings;
+        private readonly IFolderRepository _folderRepository;
 
-        public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings)
+
+        public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings, IFolderRepository folderRepository)
         {
             _fileItemService = fileItemService;
             _storageSettings = storageSettings.Value;
+            _folderRepository = folderRepository;
         }
 
         [HttpPost("upload")]
@@ -76,31 +80,9 @@ namespace FileManager.Controllers
             }
 
             memory.Position = 0;
-            return File(memory, GetContentType(fileItem.FilePath), fileItem.Name);
+            return File(memory, GetMimeType(fileItem.FilePath), fileItem.Name);
         }
-        private string GetContentType(string path)
-        {
-            var types = GetMimeTypes();
-            var ext = Path.GetExtension(path).ToLowerInvariant();
-            return types[ext];
-        }
-        private Dictionary<string, string> GetMimeTypes()
-        {
-            return new Dictionary<string, string>
-            {
-                { ".txt", "text/plain" },
-                { ".pdf", "application/pdf" },
-                { ".doc", "application/vnd.ms-word" },
-                { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-                { ".xls", "application/vnd.ms-excel" },
-                { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
-                { ".png", "image/png" },
-                { ".jpg", "image/jpeg" },
-                { ".jpeg", "image/jpeg" },
-                { ".gif", "image/gif" },
-                { ".csv", "text/csv" }
-            };
-        }
+       
 
         [HttpGet("{id}")]
         public async Task<ActionResult<FileModel>> GetFileById(int id)
@@ -123,9 +105,66 @@ namespace FileManager.Controllers
         [HttpPost]
         public async Task<IActionResult> AddFile([FromBody] FileModel fileModel)
         {
-            await _fileItemService.AddFileAsync(fileModel);
-            return CreatedAtAction(nameof(GetFileById), new { id = fileModel.Id }, fileModel);
+            var folder = await _folderRepository.GetByIdAsync(fileModel.FolderId);
+            if (folder == null)
+            {
+                return BadRequest("Invalid folder ID.");
+            }
+
+            var folderPath = Path.Combine("C:\\Users\\dF\\Documents\\storage", folder.Name);
+            var filePath = Path.Combine(folderPath, fileModel.Name);
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            // Determine MIME type
+            var mimeType = GetMimeType(fileModel.Name);
+
+            // Create a dummy file for demonstration purposes
+            System.IO.File.WriteAllText(filePath, "This is a dummy file content");
+
+            var fileItem = new FileItem
+            {
+                Name = fileModel.Name,
+                ContentType = mimeType,
+                Size = new FileInfo(filePath).Length,
+                FilePath = filePath,
+                FolderId = fileModel.FolderId,
+                DateCreated = DateTime.UtcNow,
+                DateChanged = DateTime.UtcNow
+            };
+
+            await _fileItemService.AddFileAsync(fileItem);
+
+            return CreatedAtAction(nameof(GetFileById), new { id = fileItem.Id }, fileItem);
         }
+
+        private string GetMimeType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return GetMimeTypes().TryGetValue(extension, out var mimeType) ? mimeType : "application/octet-stream";
+        }
+
+        private Dictionary<string, string> GetMimeTypes()
+        {
+            return new Dictionary<string, string>
+        {
+            { ".txt", "text/plain" },
+            { ".pdf", "application/pdf" },
+            { ".doc", "application/vnd.ms-word" },
+            { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+            { ".xls", "application/vnd.ms-excel" },
+            { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+            { ".png", "image/png" },
+            { ".jpg", "image/jpeg" },
+            { ".jpeg", "image/jpeg" },
+            { ".gif", "image/gif" },
+            { ".csv", "text/csv" }
+        };
+        }
+       
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFile(int id)

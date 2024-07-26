@@ -38,7 +38,7 @@ namespace BLL.Services
             return _mapper.Map<IEnumerable<FileModel>>(fileItems);
         }
 
-        public async Task AddFileAsync(FileModel file)
+        public async Task AddFileAsync(FileItem file)
         {
             var fileItem = _mapper.Map<FileItem>(file);
             await _fileItemRepository.AddAsync(fileItem);
@@ -53,6 +53,7 @@ namespace BLL.Services
         {
             await _fileItemRepository.MoveAsync(fileId, folderId);
         }
+       
     }
 
     

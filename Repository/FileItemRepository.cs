@@ -35,14 +35,11 @@ namespace Repository
             return await _context.FileItems.FirstOrDefaultAsync(f => f.Name == fileName);
         }
 
-        public async Task AddAsync(FileItem fileItem)
+        public async Task<FileItem> AddAsync(FileItem fileItem)
         {
-            if (string.IsNullOrEmpty(fileItem.FilePath))
-            {
-                throw new ArgumentException("FilePath cannot be null or empty.");
-            }
-            await _context.FileItems.AddAsync(fileItem);
+            _context.FileItems.Add(fileItem);
             await _context.SaveChangesAsync();
+            return fileItem;
         }
 
         public async Task DeleteAsync(int id)
