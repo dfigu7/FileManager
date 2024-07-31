@@ -17,7 +17,10 @@ namespace BLL.Services
             _fileItemRepository = fileItemRepository;
             _mapper = mapper;
         }
-
+        public async Task<bool> FileExistsAsync(string name, int folderId)
+        {
+            return await _fileItemRepository.FileExistsAsync(name, folderId);
+        }
         public async Task<FileModel> GetByIdAsync(int id)
         {
             var fileItem = await _fileItemRepository.GetByIdAsync(id);

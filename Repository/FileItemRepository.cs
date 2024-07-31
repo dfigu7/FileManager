@@ -29,10 +29,20 @@ namespace Repository
             _context.FileItems.Add(fileItem);
             await _context.SaveChangesAsync();
         }
-
+        public async Task<bool> FileExistsAsync(string name, int folderId)
+        {
+            return await _context.FileItems
+                .AnyAsync(f => f.Name == name && f.FolderId == folderId);
+        }
         public async Task<FileItem> GetFileItemByNameAsync(string fileName)
         {
-            return await _context.FileItems.FirstOrDefaultAsync(f => f.Name == fileName);
+            return await _context.FileItems.FirstOrDefaultAsync(f => f.Name == fileName) ?? throw new InvalidOperationException();
+        }
+        public async Task<IEnumerable<FileItem>> SearchByNameAsync(string name)
+        {
+            return await _context.FileItems
+                .Where(fi => fi.Name.Contains(name))
+                .ToListAsync();
         }
 
         public async Task<FileItem> AddAsync(FileItem fileItem)

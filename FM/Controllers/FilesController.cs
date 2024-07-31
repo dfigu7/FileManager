@@ -17,13 +17,15 @@ namespace FileManager.Controllers
         private readonly IFileItemService _fileItemService;
         private readonly StorageSettings _storageSettings;
         private readonly IFolderRepository _folderRepository;
+        private readonly IFolderService _folderService;
 
 
-        public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings, IFolderRepository folderRepository)
+        public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings, IFolderRepository folderRepository, IFolderService folderService)
         {
             _fileItemService = fileItemService;
             _storageSettings = storageSettings.Value;
             _folderRepository = folderRepository;
+            _folderService = folderService;
         }
 
         [HttpPost("upload")]
@@ -105,11 +107,17 @@ namespace FileManager.Controllers
         [HttpPost]
         public async Task<IActionResult> AddFile([FromBody] FileModel fileModel)
         {
+           
             var folder = await _folderRepository.GetByIdAsync(fileModel.FolderId);
+            if (await _fileItemService.FileExistsAsync(fileModel.Name, fileModel.FolderId))
+            {
+                return Conflict(new { message = "A file with the same name already exists in this folder." });
+            }
             if (folder == null)
             {
                 return BadRequest("Invalid folder ID.");
             }
+           
 
             var folderPath = Path.Combine("C:\\Users\\dF\\Documents\\storage", folder.Name);
             var filePath = Path.Combine(folderPath, fileModel.Name);
