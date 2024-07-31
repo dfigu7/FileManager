@@ -13,7 +13,7 @@ namespace BLL.Services
         Task<IEnumerable<FileModel>> GetAllAsync();
         Task<bool> FileExistsAsync(string name, int folderId);
         Task DeleteFileAsync(int id);
-        Task MoveFileAsync(int fileId, int folderId);
+        Task MoveFileAsync(int fileId, int FolderId);
         Task AddFileAsync(FileItem fileModel);
     }
 }

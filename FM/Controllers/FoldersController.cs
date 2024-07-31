@@ -29,15 +29,11 @@ public class FoldersController(IFolderService folderService) : ControllerBase
         await folderService.AddFolderAsync(folderModel);
 
         return Ok();
-       
+
     }
 
-    [HttpPut("{id}/rename")]
-    public async Task<ActionResult> RenameFolder(int id, [FromBody] string newName)
-    {
-        await folderService.RenameFolderAsync(id, newName);
-        return NoContent();
-    }
+
+
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteFolder(int id)
@@ -46,5 +42,19 @@ public class FoldersController(IFolderService folderService) : ControllerBase
         return NoContent();
     }
 
-    
+    [HttpPut("moveFolder")]
+    public async Task<IActionResult> MoveFolder(int folderId, int targetFolderId)
+    {
+        try
+        {
+            await folderService.MoveFolderAsync(folderId, targetFolderId);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
 }
+
+

@@ -20,7 +20,8 @@ namespace FileManager.Controllers
         private readonly IFolderService _folderService;
 
 
-        public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings, IFolderRepository folderRepository, IFolderService folderService)
+        public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings,
+            IFolderRepository folderRepository, IFolderService folderService)
         {
             _fileItemService = fileItemService;
             _storageSettings = storageSettings.Value;
@@ -84,7 +85,7 @@ namespace FileManager.Controllers
             memory.Position = 0;
             return File(memory, GetMimeType(fileItem.FilePath), fileItem.Name);
         }
-       
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<FileModel>> GetFileById(int id)
@@ -94,6 +95,7 @@ namespace FileManager.Controllers
             {
                 return NotFound();
             }
+
             return Ok(file);
         }
 
@@ -104,20 +106,22 @@ namespace FileManager.Controllers
             return Ok(files);
         }
 
+
         [HttpPost]
         public async Task<IActionResult> AddFile([FromBody] FileModel fileModel)
         {
-           
+
             var folder = await _folderRepository.GetByIdAsync(fileModel.FolderId);
             if (await _fileItemService.FileExistsAsync(fileModel.Name, fileModel.FolderId))
             {
                 return Conflict(new { message = "A file with the same name already exists in this folder." });
             }
+
             if (folder == null)
             {
                 return BadRequest("Invalid folder ID.");
             }
-           
+
 
             var folderPath = Path.Combine("C:\\Users\\dF\\Documents\\storage", folder.Name);
             var filePath = Path.Combine(folderPath, fileModel.Name);
@@ -158,21 +162,21 @@ namespace FileManager.Controllers
         private static Dictionary<string, string> GetMimeTypes()
         {
             return new Dictionary<string, string>
-        {
-            { ".txt", "text/plain" },
-            { ".pdf", "application/pdf" },
-            { ".doc", "application/vnd.ms-word" },
-            { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
-            { ".xls", "application/vnd.ms-excel" },
-            { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
-            { ".png", "image/png" },
-            { ".jpg", "image/jpeg" },
-            { ".jpeg", "image/jpeg" },
-            { ".gif", "image/gif" },
-            { ".csv", "text/csv" }
-        };
+            {
+                { ".txt", "text/plain" },
+                { ".pdf", "application/pdf" },
+                { ".doc", "application/vnd.ms-word" },
+                { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+                { ".xls", "application/vnd.ms-excel" },
+                { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+                { ".png", "image/png" },
+                { ".jpg", "image/jpeg" },
+                { ".jpeg", "image/jpeg" },
+                { ".gif", "image/gif" },
+                { ".csv", "text/csv" }
+            };
         }
-       
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFile(int id)
@@ -181,5 +185,20 @@ namespace FileManager.Controllers
             return NoContent();
         }
 
+        [HttpPut("moveFile")]
+        public async Task<IActionResult> MoveFile(int fileId, int FolderId)
+        {
+            try
+            {
+                await _fileItemService.MoveFileAsync(fileId, FolderId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+
+
+        }
     }
 }
