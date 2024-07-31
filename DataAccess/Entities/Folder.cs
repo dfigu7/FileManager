@@ -13,7 +13,7 @@ public class Folder
     public ICollection<Folder>? SubFolders { get; set; }
     public DateTime DateCreated { get; set; }
     public DateTime DateChanged { get; set; }
-    public ICollection<FileItem> Files { get; set; } = new List<FileItem>();
+    public ICollection<FileItem> Files { get; set; } = [];
     public string? Path { get; set; }
 }
 

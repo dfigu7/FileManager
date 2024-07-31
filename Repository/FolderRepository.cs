@@ -15,7 +15,7 @@ public class FolderRepository : Repository<Folder>, IFolderRepository
     {
         return await _context.Folders
             .Include(f => f!.Files)
-            .FirstOrDefaultAsync(f => f != null && f.Id == id);
+            .FirstOrDefaultAsync(f => f != null && f.Id == id) ?? throw new InvalidOperationException();
     }
     public async Task<IEnumerable<Folder>> SearchByNameAsync(string name)
     {

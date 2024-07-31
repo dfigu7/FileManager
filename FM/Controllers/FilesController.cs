@@ -153,7 +153,7 @@ namespace FileManager.Controllers
             return CreatedAtAction(nameof(GetFileById), new { id = fileItem.Id }, fileItem);
         }
 
-        private string GetMimeType(string fileName)
+        private static string GetMimeType(string fileName)
         {
             var extension = Path.GetExtension(fileName).ToLowerInvariant();
             return GetMimeTypes().TryGetValue(extension, out var mimeType) ? mimeType : "application/octet-stream";

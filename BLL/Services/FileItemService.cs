@@ -54,12 +54,7 @@ namespace BLL.Services
 
         public async Task MoveFileAsync(int fileId, int targetFolderId)
         {
-            var file = await _fileItemRepository.GetByIdAsync(fileId);
-            if (file == null)
-            {
-                throw new Exception("File not found");
-            }
-
+            var file = await _fileItemRepository.GetByIdAsync(fileId) ?? throw new Exception("File not found");
             file.FolderId = targetFolderId;
             file.FilePath = await _fileItemRepository.GetFullPath(targetFolderId) + "/" + file.Name;
 

@@ -7,28 +7,22 @@ using System.IO;
 
 namespace Repository
 {
-    public class FileItemRepository : IFileItemRepository
+    public class FileItemRepository(FileManagerDbContext context) : IFileItemRepository
     {
-        private readonly FileManagerDbContext _context;
-
-        public FileItemRepository(FileManagerDbContext context)
-        {
-            _context = context;
-        }
         public async Task<FileItem> GetByIdAsync(int id)
         {
-            return await _context.FileItems.FindAsync(id);
+            return await context.FileItems.FindAsync(id) ?? throw new InvalidOperationException();
         }
 
         public async Task UpdateAsync(FileItem file)
         {
-            _context.FileItems.Update(file);
-            await _context.SaveChangesAsync();
+            context.FileItems.Update(file);
+            await context.SaveChangesAsync();
         }
 
         public async Task<string> GetFullPath(int folderId)
         {
-            var folder = await _context.Folders.FindAsync(folderId);
+            var folder = await context.Folders.FindAsync(folderId);
             return folder?.Path ?? string.Empty;
         }
        
@@ -37,60 +31,60 @@ namespace Repository
 
         public async Task<IEnumerable<FileItem>> GetFilesByFolderIdAsync(int folderId)
         {
-            return await _context.FileItems.Where(fi => fi.FolderId == folderId).ToListAsync();
+            return await context.FileItems.Where(fi => fi.FolderId == folderId).ToListAsync();
         }
 
 
 
         public async Task<IEnumerable<FileItem>> GetAllAsync()
         {
-            return await _context.FileItems.ToListAsync();
+            return await context.FileItems.ToListAsync();
         }
         public async Task AddFileItemAsync(FileItem fileItem)
         {
-            _context.FileItems.Add(fileItem);
-            await _context.SaveChangesAsync();
+            context.FileItems.Add(fileItem);
+            await context.SaveChangesAsync();
         }
         public async Task<bool> FileExistsAsync(string name, int folderId)
         {
-            return await _context.FileItems
+            return await context.FileItems
                 .AnyAsync(f => f.Name == name && f.FolderId == folderId);
         }
         public async Task<FileItem> GetFileItemByNameAsync(string fileName)
         {
-            return await _context.FileItems.FirstOrDefaultAsync(f => f.Name == fileName) ?? throw new InvalidOperationException();
+            return await context.FileItems.FirstOrDefaultAsync(f => f.Name == fileName) ?? throw new InvalidOperationException();
         }
         public async Task<IEnumerable<FileItem>> SearchByNameAsync(string name)
         {
-            return await _context.FileItems
+            return await context.FileItems
                 .Where(fi => fi.Name.Contains(name))
                 .ToListAsync();
         }
 
         public async Task<FileItem> AddAsync(FileItem fileItem)
         {
-            _context.FileItems.Add(fileItem);
-            await _context.SaveChangesAsync();
+            context.FileItems.Add(fileItem);
+            await context.SaveChangesAsync();
             return fileItem;
         }
 
         public async Task DeleteAsync(int id)
         {
-            var fileItem = await _context.FileItems.FindAsync(id);
+            var fileItem = await context.FileItems.FindAsync(id);
             if (fileItem != null)
             {
-                _context.FileItems.Remove(fileItem);
-                await _context.SaveChangesAsync();
+                context.FileItems.Remove(fileItem);
+                await context.SaveChangesAsync();
             }
         }
 
         public async Task MoveAsync(int fileId, int folderId)
         {
-            var fileItem = await _context.FileItems.FindAsync(fileId);
+            var fileItem = await context.FileItems.FindAsync(fileId);
             if (fileItem != null)
             {
                 fileItem.FolderId = folderId;
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
         }
     }

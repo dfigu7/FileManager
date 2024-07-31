@@ -19,15 +19,13 @@ public class ViewService : IViewService
 
     public async Task<IEnumerable<FileItem>> GetFilesInFolderAsync(int folderId)
     {
-        _logger.LogInformation($"Fetching files for folder with ID: {folderId}");
+        string message = $"Fetching files for folder with ID: {folderId}";
+        _logger.LogInformation(message);
         var folder = await _folderRepository.GetByIdAsync(folderId);
-        if (folder == null)
-        {
-            _logger.LogWarning($"Folder with ID {folderId} not found");
-            throw new KeyNotFoundException("Folder not found");
-        }
+        if (folder != null) return folder.Files;
+        _logger.LogWarning($"Folder with ID {folderId} not found");
+        throw new KeyNotFoundException("Folder not found");
 
-        return folder.Files;
     }
     public async Task<IEnumerable<FileItem>> SearchFilesAsync(string name)
     {
@@ -43,7 +41,7 @@ public class ViewService : IViewService
         var file = await _fileItemRepository.GetByIdAsync(fileId);
         if (file == null) return false;
 
-        var newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(file.FilePath), newName);
+        var newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(file.FilePath)!, newName);
         file.Name = newName;
         file.FilePath = newPath;
 
@@ -57,7 +55,7 @@ public class ViewService : IViewService
         if (folder == null) return false;
 
         var parentPath = System.IO.Path.GetDirectoryName(folder.Path);
-        var newFolderPath = System.IO.Path.Combine(parentPath, newName);
+        var newFolderPath = System.IO.Path.Combine(parentPath!, newName);
 
         // Update folder path and name
         folder.Name = newName;
@@ -70,7 +68,7 @@ public class ViewService : IViewService
         // Update paths for child files
         foreach (var file in childFiles)
         {
-            var relativePath = file.FilePath.Substring(folder.Path.Length);
+            var relativePath = file.FilePath[folder.Path.Length..];
             file.FilePath = System.IO.Path.Combine(newFolderPath, relativePath);
             await _fileItemRepository.UpdateAsync(file);
         }
@@ -78,8 +76,12 @@ public class ViewService : IViewService
         // Update paths for child folders
         foreach (var childFolder in childFolders)
         {
-            var relativePath = childFolder.Path.Substring(folder.Path.Length);
-            childFolder.Path = System.IO.Path.Combine(newFolderPath, relativePath);
+            if (childFolder.Path != null)
+            {
+                var relativePath = childFolder.Path[folder.Path.Length..];
+                childFolder.Path = System.IO.Path.Combine(newFolderPath, relativePath);
+            }
+
             await _folderRepository.UpdateAsync(childFolder);
         }
 
