@@ -1,6 +1,8 @@
 ﻿using BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 
+namespace FMAPI.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class ViewController : ControllerBase

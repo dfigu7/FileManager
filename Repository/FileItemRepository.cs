@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DataAccess;
+using System.IO;
 
 namespace Repository
 {
@@ -14,11 +15,24 @@ namespace Repository
         {
             _context = context;
         }
-
         public async Task<FileItem> GetByIdAsync(int id)
         {
             return await _context.FileItems.FindAsync(id);
         }
+
+        public async Task UpdateAsync(FileItem file)
+        {
+            _context.FileItems.Update(file);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<string> GetFullPath(int folderId)
+        {
+            var folder = await _context.Folders.FindAsync(folderId);
+            return folder?.Path ?? string.Empty;
+        }
+
+
 
         public async Task<IEnumerable<FileItem>> GetAllAsync()
         {

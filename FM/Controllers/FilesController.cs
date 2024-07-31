@@ -155,7 +155,7 @@ namespace FileManager.Controllers
             return GetMimeTypes().TryGetValue(extension, out var mimeType) ? mimeType : "application/octet-stream";
         }
 
-        private Dictionary<string, string> GetMimeTypes()
+        private static Dictionary<string, string> GetMimeTypes()
         {
             return new Dictionary<string, string>
         {
@@ -181,11 +181,18 @@ namespace FileManager.Controllers
             return NoContent();
         }
 
-        [HttpPut("{fileId}/move/{folderId}")]
-        public async Task<IActionResult> MoveFile(int fileId, int folderId)
+        [HttpPut("moveFile")]
+        public async Task<IActionResult> MoveFile(int fileId, int targetFolderId)
         {
-            await _fileItemService.MoveFileAsync(fileId, folderId);
-            return NoContent();
+            try
+            {
+                await _fileItemService.MoveFileAsync(fileId, targetFolderId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

@@ -52,11 +52,20 @@ namespace BLL.Services
             await _fileItemRepository.DeleteAsync(id);
         }
 
-        public async Task MoveFileAsync(int fileId, int folderId)
+        public async Task MoveFileAsync(int fileId, int targetFolderId)
         {
-            await _fileItemRepository.MoveAsync(fileId, folderId);
+            var file = await _fileItemRepository.GetByIdAsync(fileId);
+            if (file == null)
+            {
+                throw new Exception("File not found");
+            }
+
+            file.FolderId = targetFolderId;
+            file.FilePath = await _fileItemRepository.GetFullPath(targetFolderId) + "/" + file.Name;
+
+            await _fileItemRepository.UpdateAsync(file);
         }
-       
+
     }
 
     

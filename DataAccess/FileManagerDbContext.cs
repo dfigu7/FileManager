@@ -6,7 +6,7 @@ namespace DataAccess
     public class FileManagerDbContext(DbContextOptions<FileManagerDbContext> options) : DbContext(options)
     {
         public DbSet<FileItem> FileItems { get; set; }
-        public DbSet<Folder?> Folders { get; set; }
+        public DbSet<Folder> Folders { get; set; }
         
 
         public override int SaveChanges()
