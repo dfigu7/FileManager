@@ -1,4 +1,5 @@
-﻿using DataAccess.Entities;
+﻿using BLL.DTO;
+using DataAccess.Entities;
 using Microsoft.Extensions.Logging;
 using Repository;
 
@@ -87,5 +88,35 @@ public class ViewService : IViewService
 
         await _folderRepository.UpdateAsync(folder);
         return true;
+    }
+    public async Task<IEnumerable<FileItem>> GetFilesByFilterAsync(int folderId, FilterSortDto filterSortDto)
+    {
+        var files = await _fileItemRepository.GetFilesByFolderIdAsync(folderId);
+        var query = files.AsQueryable();
+
+        if (!string.IsNullOrEmpty(filterSortDto.FileType))
+        {
+            query = query.Where(f => f.ContentType == filterSortDto.FileType);
+        }
+
+        if (filterSortDto.DateCreatedFrom.HasValue)
+        {
+            query = query.Where(f => f.DateCreated >= filterSortDto.DateCreatedFrom.Value);
+        }
+
+        if (filterSortDto.DateCreatedTo.HasValue)
+        {
+            query = query.Where(f => f.DateCreated <= filterSortDto.DateCreatedTo.Value);
+        }
+
+        query = filterSortDto.SortBy switch
+        {
+            "name" => filterSortDto.Ascending ? query.OrderBy(f => f.Name) : query.OrderByDescending(f => f.Name),
+            "fileType" => filterSortDto.Ascending ? query.OrderBy(f => f.ContentType) : query.OrderByDescending(f => f.ContentType),
+            "dateCreated" => filterSortDto.Ascending ? query.OrderBy(f => f.DateCreated) : query.OrderByDescending(f => f.DateCreated),
+            _ => query
+        };
+
+        return query.ToList();
     }
 }

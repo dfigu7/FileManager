@@ -15,6 +15,8 @@ namespace BLL.Services
         Task<IEnumerable<Folder>> SearchFoldersAsync(string name);
         Task<bool> RenameFileAsync(int fileId, string newName);
         Task<bool> RenameFolderAsync(int folderId, string newName);
-        
+        Task<IEnumerable<FileItem>> GetFilesByFilterAsync(int folderId, FilterSortDto filterSortDto);
     }
+
 }
+

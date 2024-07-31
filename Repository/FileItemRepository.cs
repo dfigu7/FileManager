@@ -9,6 +9,8 @@ namespace Repository
 {
     public class FileItemRepository(FileManagerDbContext context) : IFileItemRepository
     {
+        private IFileItemRepository _fileItemRepositoryImplementation;
+
         public async Task<FileItem> GetByIdAsync(int id)
         {
             return await context.FileItems.FindAsync(id) ?? throw new InvalidOperationException();
@@ -34,6 +36,10 @@ namespace Repository
             return await context.FileItems.Where(fi => fi.FolderId == folderId).ToListAsync();
         }
 
+        public object GetFilesByFolderId(int folderId)
+        {
+            return _fileItemRepositoryImplementation.GetFilesByFolderId(folderId);
+        }
 
 
         public async Task<IEnumerable<FileItem>> GetAllAsync()

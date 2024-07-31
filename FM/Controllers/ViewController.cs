@@ -1,4 +1,5 @@
-﻿using BLL.Services;
+﻿using BLL.DTO;
+using BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FMAPI.Controllers;
@@ -64,5 +65,11 @@ public class ViewController : ControllerBase
         var result = await _viewService.RenameFolderAsync(folderId, newName);
         if (!result) return NotFound();
         return Ok();
+    }
+    [HttpPost("filter-files/{folderId}")]
+    public async Task<IActionResult> GetFilesByFilter(int folderId, [FromBody] FilterSortDto filterSortDto)
+    {
+        var files = await _viewService.GetFilesByFilterAsync(folderId, filterSortDto);
+        return Ok(files);
     }
 }
