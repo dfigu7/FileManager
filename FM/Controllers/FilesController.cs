@@ -181,18 +181,5 @@ namespace FileManager.Controllers
             return NoContent();
         }
 
-        [HttpPut("moveFile")]
-        public async Task<IActionResult> MoveFile(int fileId, int targetFolderId)
-        {
-            try
-            {
-                await _fileItemService.MoveFileAsync(fileId, targetFolderId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
     }
 }

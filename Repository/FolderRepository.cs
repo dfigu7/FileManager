@@ -23,4 +23,16 @@ public class FolderRepository : Repository<Folder>, IFolderRepository
             .Where(f => f.Name.Contains(name))
             .ToListAsync())!;
     }
+    
+
+    public async Task UpdateAsync(Folder folder)
+    {
+        _context.Folders.Update(folder);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<Folder>> GetSubFoldersAsync(int parentId)
+    {
+        return await _context.Folders.Where(f => f.ParentFolderId == parentId).ToListAsync();
+    }
 }

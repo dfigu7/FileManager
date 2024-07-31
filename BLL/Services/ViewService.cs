@@ -38,4 +38,52 @@ public class ViewService : IViewService
     {
         return await _folderRepository.SearchByNameAsync(name);
     }
+    public async Task<bool> RenameFileAsync(int fileId, string newName)
+    {
+        var file = await _fileItemRepository.GetByIdAsync(fileId);
+        if (file == null) return false;
+
+        var newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(file.FilePath), newName);
+        file.Name = newName;
+        file.FilePath = newPath;
+
+        await _fileItemRepository.UpdateAsync(file);
+        return true;
+    }
+
+    public async Task<bool> RenameFolderAsync(int folderId, string newName)
+    {
+        var folder = await _folderRepository.GetByIdAsync(folderId);
+        if (folder == null) return false;
+
+        var parentPath = System.IO.Path.GetDirectoryName(folder.Path);
+        var newFolderPath = System.IO.Path.Combine(parentPath, newName);
+
+        // Update folder path and name
+        folder.Name = newName;
+        folder.Path = newFolderPath;
+
+        // Get all child files and folders
+        var childFiles = await _fileItemRepository.GetFilesByFolderIdAsync(folderId);
+        var childFolders = await _folderRepository.GetSubFoldersAsync(folderId);
+
+        // Update paths for child files
+        foreach (var file in childFiles)
+        {
+            var relativePath = file.FilePath.Substring(folder.Path.Length);
+            file.FilePath = System.IO.Path.Combine(newFolderPath, relativePath);
+            await _fileItemRepository.UpdateAsync(file);
+        }
+
+        // Update paths for child folders
+        foreach (var childFolder in childFolders)
+        {
+            var relativePath = childFolder.Path.Substring(folder.Path.Length);
+            childFolder.Path = System.IO.Path.Combine(newFolderPath, relativePath);
+            await _folderRepository.UpdateAsync(childFolder);
+        }
+
+        await _folderRepository.UpdateAsync(folder);
+        return true;
+    }
 }

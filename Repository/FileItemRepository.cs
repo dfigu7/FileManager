@@ -31,6 +31,14 @@ namespace Repository
             var folder = await _context.Folders.FindAsync(folderId);
             return folder?.Path ?? string.Empty;
         }
+       
+
+     
+
+        public async Task<IEnumerable<FileItem>> GetFilesByFolderIdAsync(int folderId)
+        {
+            return await _context.FileItems.Where(fi => fi.FolderId == folderId).ToListAsync();
+        }
 
 
 

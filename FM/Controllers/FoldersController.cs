@@ -46,10 +46,5 @@ public class FoldersController(IFolderService folderService) : ControllerBase
         return NoContent();
     }
 
-    [HttpPut("move")]
-    public async Task<ActionResult> MoveFolder(int folderId, int parentFolderId)
-    {
-        await folderService.MoveFolderAsync(folderId, parentFolderId);
-        return NoContent();
-    }
+    
 }

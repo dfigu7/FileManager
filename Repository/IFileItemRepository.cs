@@ -19,5 +19,6 @@ namespace Repository
         Task UpdateAsync(FileItem file);
         Task<string> GetFullPath(int folderId);
         Task<IEnumerable<FileItem>> SearchByNameAsync(string name);
+        Task<IEnumerable<FileItem>> GetFilesByFolderIdAsync(int folderId);
     }
 }

@@ -50,4 +50,19 @@ public class ViewController : ControllerBase
 
         return Ok(result);
     }
+    [HttpPut("rename/file/{fileId}")]
+    public async Task<IActionResult> RenameFile(int fileId, [FromBody] string newName)
+    {
+        var result = await _viewService.RenameFileAsync(fileId, newName);
+        if (!result) return NotFound();
+        return Ok();
+    }
+
+    [HttpPut("rename/folder/{folderId}")]
+    public async Task<IActionResult> RenameFolder(int folderId, [FromBody] string newName)
+    {
+        var result = await _viewService.RenameFolderAsync(folderId, newName);
+        if (!result) return NotFound();
+        return Ok();
+    }
 }
