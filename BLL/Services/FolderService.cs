@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using BLL.DTO;
 using DataAccess;
 using DataAccess.Entities;
 using Repository;
@@ -8,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using DataAccess.DTO;
 
 namespace BLL.Services
 {

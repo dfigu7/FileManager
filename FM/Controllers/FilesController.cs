@@ -1,11 +1,11 @@
 ﻿using BLL;
-using BLL.DTO;
 using BLL.Services;
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DataAccess.DTO;
 using Repository;
 
 namespace FileManager.Controllers

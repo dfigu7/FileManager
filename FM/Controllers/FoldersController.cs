@@ -1,5 +1,7 @@
-﻿using BLL.DTO;
+﻿
 using BLL.Services;
+using DataAccess.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FMAPI.Controllers;
@@ -8,6 +10,7 @@ namespace FMAPI.Controllers;
 [ApiController]
 public class FoldersController(IFolderService folderService) : ControllerBase
 {
+    [Authorize]
     [HttpGet("{id}")]
     public async Task<ActionResult<FolderModel>> GetFolderById(int id)
     {
@@ -16,7 +19,7 @@ public class FoldersController(IFolderService folderService) : ControllerBase
         return Ok(folder);
     }
 
-    [HttpGet]
+    [HttpGet,Authorize]
     public async Task<ActionResult<IEnumerable<FolderModel>>> GetAllFolders()
     {
         var folders = await folderService.GetAllFoldersAsync();

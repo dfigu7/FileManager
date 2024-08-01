@@ -7,6 +7,7 @@ namespace DataAccess
     {
         public DbSet<FileItem> FileItems { get; set; }
         public DbSet<Folder> Folders { get; set; }
+        public DbSet<User> Users { get; set; }
         
 
         public override int SaveChanges()
@@ -45,6 +46,22 @@ namespace DataAccess
                 .HasMany(f => f.Files)
                 .WithOne(f => f.Folder)
                 .HasForeignKey(f => f.FolderId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>().
+                HasIndex(u=>u.Username).
+                IsUnique();
+
+            modelBuilder.Entity<User>()
+                .HasMany<FileItem>()
+                .WithOne()
+                .HasForeignKey(f => f.CreatedBy)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+                .HasMany<Folder>()
+                .WithOne()
+                .HasForeignKey(f => f.CreatedBy)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

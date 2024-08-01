@@ -8,6 +8,7 @@ public class Folder
     [Key] public int Id { get; set; }
     public required string Name { get; set; }
     public int? ParentFolderId { get; set; }
+    public int CreatedBy { get; set; }
 
     public Folder? ParentFolder { get; set; }
     public ICollection<Folder>? SubFolders { get; set; }

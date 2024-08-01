@@ -1,4 +1,4 @@
-﻿using BLL.DTO;
+﻿using DataAccess.DTO;
 
 namespace BLL.Services;
 
