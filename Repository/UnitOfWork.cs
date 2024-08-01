@@ -1,18 +1,23 @@
 ﻿// FileManager.DataAccess/Repositories/UnitOfWork.cs
 
 using DataAccess;
+using Microsoft.AspNetCore.Http;
 
 namespace Repository;
 
 public class UnitOfWork : IUnitOfWork
 {
     private readonly FileManagerDbContext _context;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public UnitOfWork(FileManagerDbContext context)
+    public UnitOfWork(FileManagerDbContext context,IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
+        _httpContextAccessor = httpContextAccessor;
+        
         Files = new FileItemRepository(_context);
-        Folders = new FolderRepository(_context);
+        Folders = new FolderRepository(_context, _httpContextAccessor);
+
     }
 
     public IFileItemRepository Files { get; }

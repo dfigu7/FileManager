@@ -8,9 +8,10 @@ namespace FMAPI.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class FoldersController(IFolderService folderService) : ControllerBase
 {
-    [Authorize]
+    
     [HttpGet("{id}")]
     public async Task<ActionResult<FolderModel>> GetFolderById(int id)
     {
@@ -19,13 +20,14 @@ public class FoldersController(IFolderService folderService) : ControllerBase
         return Ok(folder);
     }
 
-    [HttpGet,Authorize]
+    [HttpGet]
     public async Task<ActionResult<IEnumerable<FolderModel>>> GetAllFolders()
     {
         var folders = await folderService.GetAllFoldersAsync();
         return Ok(folders);
     }
 
+    
     [HttpPost]
     public async Task<ActionResult> AddFolder([FromBody] FolderModel folderModel)
     {

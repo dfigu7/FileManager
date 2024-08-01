@@ -1,13 +1,17 @@
 ﻿using DataAccess;
 using DataAccess.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Repository;
 
 public class FolderRepository : Repository<Folder>, IFolderRepository
 {
-    public FolderRepository(FileManagerDbContext context) : base(context)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public FolderRepository(FileManagerDbContext context,IHttpContextAccessor httpContextAccessor ) : base(context)
     {
+        _httpContextAccessor = httpContextAccessor;
     }
 
     // Ensure eager loading of Files
@@ -16,6 +20,7 @@ public class FolderRepository : Repository<Folder>, IFolderRepository
         return await _context.Folders
             .Include(f => f!.Files)
             .FirstOrDefaultAsync(f => f != null && f.Id == id) ?? throw new InvalidOperationException();
+
     }
     public async Task<IEnumerable<Folder>> SearchByNameAsync(string name)
     {
@@ -33,6 +38,7 @@ public class FolderRepository : Repository<Folder>, IFolderRepository
 
     public async Task<IEnumerable<Folder>> GetSubFoldersAsync(int parentId)
     {
+
         return await _context.Folders.Where(f => f.ParentFolderId == parentId).ToListAsync();
     }
 }

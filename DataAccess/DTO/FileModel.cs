@@ -8,9 +8,5 @@ public class FileModel
     
     public int FolderId { get; set; }
 
-    public int CreatedBy { get; set; }
-  
-
-
 
 }

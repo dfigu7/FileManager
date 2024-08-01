@@ -6,37 +6,48 @@ using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DataAccess.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Repository;
 
 namespace FileManager.Controllers
 {
     [ApiController]
+    
     [Route("api/[controller]")]
+    [Authorize]
     public class FilesController : ControllerBase
     {
         private readonly IFileItemService _fileItemService;
         private readonly StorageSettings _storageSettings;
         private readonly IFolderRepository _folderRepository;
         private readonly IFolderService _folderService;
+        private readonly int? _userId;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
 
         public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings,
-            IFolderRepository folderRepository, IFolderService folderService)
+            IFolderRepository folderRepository, IFolderService folderService, UserIdProviderService userIdProvider)
         {
             _fileItemService = fileItemService;
             _storageSettings = storageSettings.Value;
             _folderRepository = folderRepository;
             _folderService = folderService;
+            _userId = userIdProvider.GetUserId();
         }
 
         [HttpPost("upload")]
         public async Task<IActionResult> UploadFile(IFormFile file)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             if (file == null || file.Length == 0)
             {
                 return BadRequest("No file uploaded.");
             }
-
+            
             var uploadPath = _storageSettings.StoragePath;
 
             if (!Directory.Exists(uploadPath))
@@ -57,7 +68,8 @@ namespace FileManager.Controllers
                 Name = file.FileName,
                 FilePath = filePath,
                 Size = file.Length,
-                ContentType = file.ContentType
+                ContentType = file.ContentType,
+                CreatedBy = (int)_userId,
             };
 
             await _fileItemService.AddFileItemAsync(fileItem);
@@ -110,7 +122,10 @@ namespace FileManager.Controllers
         [HttpPost]
         public async Task<IActionResult> AddFile([FromBody] FileModel fileModel)
         {
-
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var folder = await _folderRepository.GetByIdAsync(fileModel.FolderId);
             if (await _fileItemService.FileExistsAsync(fileModel.Name, fileModel.FolderId))
             {

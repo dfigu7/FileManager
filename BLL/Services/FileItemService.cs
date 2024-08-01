@@ -3,7 +3,10 @@ using DataAccess.Entities;
 using Repository;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DataAccess;
 using DataAccess.DTO;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace BLL.Services
 {
@@ -11,11 +14,16 @@ namespace BLL.Services
     {
         private readonly IFileItemRepository _fileItemRepository;
         private readonly IMapper _mapper;
+        private readonly FileManagerDbContext _context;
+        private readonly int? _userId;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public FileItemService(IFileItemRepository fileItemRepository, IMapper mapper)
+
+        public FileItemService(IFileItemRepository fileItemRepository, IMapper mapper, UserIdProviderService userIdProvider)
         {
             _fileItemRepository = fileItemRepository;
             _mapper = mapper;
+            _userId = userIdProvider.GetUserId();
         }
         public async Task<bool> FileExistsAsync(string name, int folderId)
         {
@@ -43,7 +51,10 @@ namespace BLL.Services
 
         public async Task AddFileAsync(FileItem file)
         {
+           
             var fileItem = _mapper.Map<FileItem>(file);
+            
+            file.CreatedBy = (int)_userId;
             await _fileItemRepository.AddAsync(fileItem);
         }
 

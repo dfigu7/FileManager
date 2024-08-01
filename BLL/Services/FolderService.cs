@@ -6,26 +6,41 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using DataAccess.DTO;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace BLL.Services
 {
-    public class FolderService(
-        IUnitOfWork unitOfWork,
-        IMapper mapper,
-        FileManagerDbContext context,
-        IOptions<StorageSettings> storageSettings)
-        : IFolderService
+    public class FolderService : IFolderService
     {
-        private readonly IUnitOfWork _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-        private readonly IMapper _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-        private readonly FileManagerDbContext _context = context ?? throw new ArgumentNullException(nameof(context));
-        private readonly string _storagePath = storageSettings?.Value.StoragePath ?? throw new ArgumentNullException(nameof(storageSettings));
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly FileManagerDbContext _context;
+        private readonly string _storagePath;
+        private readonly int? _userId;
+
+        public FolderService(
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            FileManagerDbContext context,
+            IOptions<StorageSettings> storageSettings,
+            UserIdProviderService _userIdProvider)
+        {
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _storagePath = storageSettings?.Value.StoragePath ?? throw new ArgumentNullException(nameof(storageSettings));
+            _userId = _userIdProvider.GetUserId();
+            
+        }
 
         public async Task<FolderModel> GetFolderByIdAsync(int id)
         {
             var folder = await _unitOfWork.Folders.GetByIdAsync(id);
+
             return _mapper.Map<FolderModel>(folder);
         }
 
@@ -37,20 +52,25 @@ namespace BLL.Services
 
         public async Task AddFolderAsync(FolderModel folderModel)
         {
+
+
             var folder = _mapper.Map<Folder>(folderModel);
             var parentFolder = await _context.Folders.FindAsync(folderModel.ParentFolderId);
+            folder.CreatedBy = (int)_userId;
 
             if (folderModel.Name != null)
+            {
                 folder.Path = parentFolder == null
                     ? Path.Combine(_storagePath, folderModel.Name)
                     : Path.Combine(_storagePath, parentFolder.Path ?? string.Empty, folderModel.Name);
+            }
 
             folder.DateCreated = DateTime.UtcNow;
             folder.DateChanged = DateTime.UtcNow;
 
             if (!Directory.Exists(folder.Path))
             {
-                if (folder.Path != null) Directory.CreateDirectory(folder.Path);
+                Directory.CreateDirectory(folder.Path);
             }
 
             await _unitOfWork.Folders.AddAsync(folder);
@@ -60,6 +80,7 @@ namespace BLL.Services
         public async Task RenameFolderAsync(int id, string newName)
         {
             var folder = await _unitOfWork.Folders.GetByIdAsync(id);
+            folder.CreatedBy = (int)_userId;
             if (folder != null)
             {
                 folder.Name = newName;
@@ -85,6 +106,8 @@ namespace BLL.Services
             {
                 var folder = await _unitOfWork.Folders.GetByIdAsync(folderId);
                 var parentFolder = await _context.Folders.FindAsync(parentFolderId);
+                
+                folder.CreatedBy = (int)_userId;
 
                 if (folder == null)
                 {
