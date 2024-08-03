@@ -3,8 +3,7 @@ using BLL.Services;
 using DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
 using DataAccess.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Repository;
@@ -146,11 +145,11 @@ namespace FileManager.Controllers
                 Directory.CreateDirectory(folderPath);
             }
 
-            // Determine MIME type
+            //  MIME type
             var mimeType = GetMimeType(fileModel.Name);
 
             // Create a dummy file for demonstration purposes
-            System.IO.File.WriteAllText(filePath, "This is a dummy file content");
+            System.IO.File.WriteAllText(filePath, "Hello World");
 
             var fileItem = new FileItem
             {

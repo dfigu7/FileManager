@@ -8,6 +8,7 @@ namespace DataAccess
         public DbSet<FileItem> FileItems { get; set; }
         public DbSet<Folder> Folders { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<FileVersion> FileVersions { get; set; }
         
 
         public override int SaveChanges()
@@ -63,6 +64,11 @@ namespace DataAccess
                 .WithOne()
                 .HasForeignKey(f => f.CreatedBy)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<FileVersion>()
+                .HasOne(fv => fv.FileItem)
+                .WithMany(fi => fi.FileVersions)
+                .HasForeignKey(fv => fv.FileItemId);
         }
     }
 }

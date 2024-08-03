@@ -13,4 +13,5 @@ public class FileItem
     public Folder Folder { get; set; } = null!;
     public DateTime DateCreated { get; set; }
     public DateTime DateChanged { get; set; }
+    public IEnumerable<FileVersion>? FileVersions { get; set; }
 }

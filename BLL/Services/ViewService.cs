@@ -10,12 +10,16 @@ public class ViewService : IViewService
     private readonly IFileItemRepository _fileItemRepository;
     private readonly IFolderRepository _folderRepository;
     private readonly ILogger<ViewService> _logger;
+    private readonly IFileVersionRepository _fileVersionRepository;
+    private readonly IViewRepository _viewRepository;
 
-    public ViewService(IFileItemRepository fileItemRepository, IFolderRepository folderRepository, ILogger<ViewService> logger)
+    public ViewService(IFileItemRepository fileItemRepository, IFolderRepository folderRepository, ILogger<ViewService> logger, IFileVersionRepository fileVersionRepository, IViewRepository viewRepository)
     {
         _fileItemRepository = fileItemRepository;
         _folderRepository = folderRepository;
         _logger = logger;
+        _fileVersionRepository = fileVersionRepository;
+        _viewRepository = viewRepository;
     }
 
     public async Task<IEnumerable<FileItem>> GetFilesInFolderAsync(int folderId)
@@ -42,12 +46,50 @@ public class ViewService : IViewService
         var file = await _fileItemRepository.GetByIdAsync(fileId);
         if (file == null) return false;
 
+        // Create a file version before renaming
+        var fileVersion = new FileVersion
+        {
+            FileItemId = file.Id,
+            Name = file.Name,
+            FilePath = file.FilePath,
+            FolderId = file.FolderId,
+            DateCreated = file.DateCreated,
+            DateChanged = file.DateChanged,
+            ContentType = file.ContentType,
+            CreatedBy = file.CreatedBy,
+
+            Size = file.Size,
+            VersionDate = DateTime.UtcNow
+        };
+
+        await _fileVersionRepository.AddAsync(fileVersion);
+
+        // Generate the new path
         var newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(file.FilePath)!, newName);
+
+        // Update file details
         file.Name = newName;
         file.FilePath = newPath;
 
         await _fileItemRepository.UpdateAsync(file);
         return true;
+    }
+
+    public async Task RollbackFileAsync(int fileItemId)
+    {
+        var latestVersion = await _fileVersionRepository.GetLatestVersionByFileItemIdAsync(fileItemId);
+
+        if (latestVersion != null)
+        {
+            var fileItem = await _fileItemRepository.GetByIdAsync(fileItemId);
+
+            if (fileItem != null)
+            {
+                fileItem.Name = latestVersion.Name;
+                fileItem.FilePath = latestVersion.FilePath;
+                await _fileItemRepository.UpdateAsync(fileItem);
+            }
+        }
     }
 
     public async Task<bool> RenameFolderAsync(int folderId, string newName)

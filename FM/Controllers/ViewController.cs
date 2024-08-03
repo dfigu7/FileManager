@@ -58,6 +58,12 @@ public class ViewController : ControllerBase
         if (!result) return NotFound();
         return Ok();
     }
+    [HttpPost("{fileItemId}/rollback")]
+    public async Task<IActionResult> RollbackFile(int fileItemId)
+    {
+        await _viewService.RollbackFileAsync(fileItemId);
+        return Ok();
+    }
 
     [HttpPut("rename/folder/{folderId}")]
     public async Task<IActionResult> RenameFolder(int folderId, [FromBody] string newName)
@@ -66,6 +72,7 @@ public class ViewController : ControllerBase
         if (!result) return NotFound();
         return Ok();
     }
+
     [HttpPost("filter-files/{folderId}")]
     public async Task<IActionResult> GetFilesByFilter(int folderId, [FromBody] FilterSortDto filterSortDto)
     {
