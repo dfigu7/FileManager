@@ -10,4 +10,5 @@ public interface IFolderRepository : IRepository<Folder>
     Task<IEnumerable<Folder>> SearchByNameAsync(string name);
     Task<IEnumerable<Folder>> GetSubFoldersAsync(int folderId);
     Task UpdateAsync(Folder childFolder);
+    Task<bool> DeleteAsync(int folderId);
 }

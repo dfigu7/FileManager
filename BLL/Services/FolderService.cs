@@ -21,20 +21,25 @@ namespace BLL.Services
         private readonly FileManagerDbContext _context;
         private readonly string _storagePath;
         private readonly int? _userId;
+        private readonly IFolderRepository _folderRepository;
+        private readonly IFileItemRepository _fileItemRepository;
 
         public FolderService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             FileManagerDbContext context,
             IOptions<StorageSettings> storageSettings,
-            UserIdProviderService _userIdProvider)
+            UserIdProviderService userIdProvider,
+            IFolderRepository folderRepository,
+            IFileItemRepository fileItemRepository)
         {
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _storagePath = storageSettings?.Value.StoragePath ?? throw new ArgumentNullException(nameof(storageSettings));
-            _userId = _userIdProvider.GetUserId();
-            
+            _userId = userIdProvider?.GetUserId() ?? throw new ArgumentNullException(nameof(userIdProvider));
+            _folderRepository = folderRepository ?? throw new ArgumentNullException(nameof(folderRepository));
+            _fileItemRepository = fileItemRepository ?? throw new ArgumentNullException(nameof(fileItemRepository));
         }
 
         public async Task<FolderModel> GetFolderByIdAsync(int id)
@@ -89,15 +94,55 @@ namespace BLL.Services
             }
         }
 
-        public async Task DeleteFolderAsync(int id)
+        public async Task<bool> DeleteFolderAsync(int folderId)
         {
-            var folder = await _unitOfWork.Folders.GetByIdAsync(id);
-            if (folder != null)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                _unitOfWork.Folders.Remove(folder);
-                await _unitOfWork.CompleteAsync();
+                var folder = await _folderRepository.GetByIdAsync(folderId);
+                if (folder == null) return false;
+
+                var folderPath = folder.Path;
+
+                // Get all child files and folders
+                var childFiles = await _fileItemRepository.GetFilesByFolderIdAsync(folderId);
+                var childFolders = await _folderRepository.GetSubFoldersAsync(folderId);
+
+                // Delete child files from the database and file system
+                foreach (var file in childFiles)
+                {
+                    await _fileItemRepository.DeleteAsync(file.Id);
+                    if (File.Exists(file.FilePath))
+                    {
+                        File.Delete(file.FilePath);
+                    }
+                }
+
+                // Recursively delete child folders
+                foreach (var childFolder in childFolders)
+                {
+                    await DeleteFolderAsync(childFolder.Id);
+                }
+
+                // Delete the folder from the database
+                await _folderRepository.DeleteAsync(folder.Id);
+
+                // Delete the folder from the file system
+                if (Directory.Exists(folderPath))
+                {
+                    Directory.Delete(folderPath, true);
+                }
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
             }
         }
+
 
         public async Task MoveFolderAsync(int folderId, int parentFolderId)
         {
