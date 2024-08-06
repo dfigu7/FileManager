@@ -1,5 +1,7 @@
-﻿using DataAccess.DTO;
+﻿using DataAccess;
+using DataAccess.DTO;
 using DataAccess.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repository;
 
@@ -12,14 +14,16 @@ public class ViewService : IViewService
     private readonly ILogger<ViewService> _logger;
     private readonly IFileVersionRepository _fileVersionRepository;
     private readonly IViewRepository _viewRepository;
+    private readonly FileManagerDbContext _context;
 
-    public ViewService(IFileItemRepository fileItemRepository, IFolderRepository folderRepository, ILogger<ViewService> logger, IFileVersionRepository fileVersionRepository, IViewRepository viewRepository)
+    public ViewService(IFileItemRepository fileItemRepository, IFolderRepository folderRepository, ILogger<ViewService> logger, IFileVersionRepository fileVersionRepository, IViewRepository viewRepository, FileManagerDbContext context)
     {
         _fileItemRepository = fileItemRepository;
         _folderRepository = folderRepository;
         _logger = logger;
         _fileVersionRepository = fileVersionRepository;
         _viewRepository = viewRepository;
+        _context = context;
     }
 
     public async Task<IEnumerable<FileItem>> GetFilesInFolderAsync(int folderId)
@@ -94,43 +98,55 @@ public class ViewService : IViewService
 
     public async Task<bool> RenameFolderAsync(int folderId, string newName)
     {
-        var folder = await _folderRepository.GetByIdAsync(folderId);
-        if (folder == null) return false;
-
-        var parentPath = System.IO.Path.GetDirectoryName(folder.Path);
-        var newFolderPath = System.IO.Path.Combine(parentPath!, newName);
-
-        // Update folder path and name
-        folder.Name = newName;
-        folder.Path = newFolderPath;
-
-        // Get all child files and folders
-        var childFiles = await _fileItemRepository.GetFilesByFolderIdAsync(folderId);
-        var childFolders = await _folderRepository.GetSubFoldersAsync(folderId);
-
-        // Update paths for child files
-        foreach (var file in childFiles)
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            var relativePath = file.FilePath[folder.Path.Length..];
-            file.FilePath = System.IO.Path.Combine(newFolderPath, relativePath);
-            await _fileItemRepository.UpdateAsync(file);
-        }
+            var folder = await _folderRepository.GetByIdAsync(folderId);
+            if (folder == null) return false;
 
-        // Update paths for child folders
-        foreach (var childFolder in childFolders)
-        {
-            if (childFolder.Path != null)
+            var parentPath = Path.GetDirectoryName(folder.Path);
+            var newFolderPath = Path.Combine(parentPath!, newName);
+
+            // Update folder path and name
+            var oldFolderPath = folder.Path;
+            folder.Name = newName;
+            folder.Path = newFolderPath;
+
+            await _viewRepository.UpdateFolderAsync(folder);
+
+            // Get all child files and folders
+            var childFiles = await _fileItemRepository.GetFilesByFolderIdAsync(folderId);
+            var childFolders = await _folderRepository.GetSubFoldersAsync(folderId);
+
+            // Update paths for child files
+            foreach (var file in childFiles)
             {
-                var relativePath = childFolder.Path[folder.Path.Length..];
-                childFolder.Path = System.IO.Path.Combine(newFolderPath, relativePath);
+                var relativePath = file.FilePath[oldFolderPath.Length..];
+                file.FilePath = Path.Combine(newFolderPath, relativePath);
+                await _fileItemRepository.UpdateAsync(file);
             }
 
-            await _folderRepository.UpdateAsync(childFolder);
-        }
+            // Update paths for child folders
+            foreach (var childFolder in childFolders)
+            {
+                var relativePath = childFolder.Path[oldFolderPath.Length..];
+                childFolder.Path = Path.Combine(newFolderPath, relativePath);
+                await _folderRepository.UpdateAsync(childFolder);
+            }
 
-        await _folderRepository.UpdateAsync(folder);
-        return true;
+            // Rename folder in the local file system
+            Directory.Move(oldFolderPath, newFolderPath);
+
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
+
 
 
 
