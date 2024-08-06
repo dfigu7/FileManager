@@ -49,6 +49,11 @@ namespace Repository
         {
             throw new NotImplementedException();
         }
+        public async Task UpdateFolderAsync(Folder folder)
+        {
+            _context.Folders.Update(folder);
+            await _context.SaveChangesAsync();
+        }
     }
 
    

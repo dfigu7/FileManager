@@ -45,7 +45,8 @@ public class LoginRepository : ILoginRepository
         String id = user.Id.ToString();
         var claims = new List<Claim>
         {
-            new Claim("userId", id)
+            new Claim("userId", id),
+            new Claim(ClaimTypes.Role, user.Role)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value));

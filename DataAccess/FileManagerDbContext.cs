@@ -1,4 +1,5 @@
-﻿using DataAccess.Entities;
+﻿using DataAccess.DTO;
+using DataAccess.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace DataAccess
@@ -53,7 +54,17 @@ namespace DataAccess
                 HasIndex(u=>u.Username).
                 IsUnique();
 
-            modelBuilder.Entity<User>()
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Username).IsRequired();
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.PasswordSalt).IsRequired();
+                entity.Property(e => e.Role).IsRequired(); // Ensure this is required
+            });
+
+
+           modelBuilder.Entity<User>()
                 .HasMany<FileItem>()
                 .WithOne()
                 .HasForeignKey(f => f.CreatedBy)

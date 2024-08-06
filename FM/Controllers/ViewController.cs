@@ -1,11 +1,13 @@
 ﻿using BLL.Services;
 using DataAccess.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FMAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ViewController : ControllerBase
 {
     private readonly IViewService _viewService;
@@ -58,7 +60,10 @@ public class ViewController : ControllerBase
         if (!result) return NotFound();
         return Ok();
     }
+    
     [HttpPost("{fileItemId}/rollback")]
+    [Authorize(Policy = "ManagerOnly")]
+
     public async Task<IActionResult> RollbackFile(int fileItemId)
     {
         await _viewService.RollbackFileAsync(fileItemId);
@@ -73,8 +78,8 @@ public class ViewController : ControllerBase
         return Ok();
     }
 
-    [HttpPost("filter-files/{folderId}")]
-    public async Task<IActionResult> GetFilesByFilter(int folderId, [FromBody] FilterSortDto filterSortDto)
+    [HttpGet("filter-files/{folderId}")]
+    public async Task<IActionResult> GetFilesByFilter(int folderId, [FromQuery] FilterSortDto filterSortDto)
     {
         var files = await _viewService.GetFilesByFilterAsync(folderId, filterSortDto);
         return Ok(files);

@@ -16,6 +16,7 @@ namespace Repository
         Task<FileVersion> GetByIdAsync(int fileItemId);
         Task<List<FileVersion>> GetAllVersionsAsync();
         Task<List<FileVersion>> GetLatestVersionByFileItemIdAsync(int fileItemId);
+        Task UpdateFolderAsync(Folder folder);
     }
 
 }

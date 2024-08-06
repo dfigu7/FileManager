@@ -8,9 +8,9 @@ namespace DataAccess.DTO
 {
     public class FilterSortDto
     {
-        public string SortBy { get; set; }
+        public string? SortBy { get; set; }
         public bool Ascending { get; set; } = true;
-        public string FileType { get; set; }
+        public string? FileType { get; set; }
         public DateTime? DateCreatedFrom { get; set; }
         public DateTime? DateCreatedTo { get; set; }
     }
