@@ -61,7 +61,7 @@ public class ViewController : ControllerBase
         return Ok();
     }
     
-    [HttpPost("{fileItemId}/rollback")]
+    [HttpPut("{fileItemId}/rollback")]
     [Authorize(Policy = "ManagerOnly")]
 
     public async Task<IActionResult> RollbackFile(int fileItemId)

@@ -121,7 +121,7 @@ namespace FileManager.Controllers
         [HttpPost]
         public async Task<IActionResult> AddFile([FromBody] FileModel fileModel)
         {
-            if (!ModelState.IsValid)
+            if (fileModel == null)
             {
                 return BadRequest(ModelState);
             }

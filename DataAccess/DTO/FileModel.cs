@@ -10,6 +10,6 @@ public class FileModel
     
     public int FolderId { get; set; }
   
-    public ICollection<FileVersion> FileVersions { get; set; } = new List<FileVersion>();
+    
 
 }

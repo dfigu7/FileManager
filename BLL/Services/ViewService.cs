@@ -45,39 +45,76 @@ public class ViewService : IViewService
     {
         return await _folderRepository.SearchByNameAsync(name);
     }
+
     public async Task<bool> RenameFileAsync(int fileId, string newName)
     {
-        var file = await _fileItemRepository.GetByIdAsync(fileId);
-        if (file == null) return false;
-
-        // Create a file version before renaming
-        var fileVersion = new FileVersion
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            FileItemId = file.Id,
-            Name = file.Name,
-            FilePath = file.FilePath,
-            FolderId = file.FolderId,
-            DateCreated = file.DateCreated,
-            DateChanged = file.DateChanged,
-            ContentType = file.ContentType,
-            CreatedBy = file.CreatedBy,
+            var file = await _fileItemRepository.GetByIdAsync(fileId);
+            if (file == null) return false;
 
-            Size = file.Size,
-            VersionDate = DateTime.UtcNow
-        };
+            var oldFilePath = file.FilePath;
 
-        await _fileVersionRepository.AddAsync(fileVersion);
+            // Create a file version before renaming
+            var fileVersion = new FileVersion
+            {
+                FileItemId = file.Id,
+                Name = file.Name,
+                FilePath = file.FilePath,
+                FolderId = file.FolderId,
+                DateCreated = file.DateCreated,
+                DateChanged = file.DateChanged,
+                ContentType = file.ContentType,
+                CreatedBy = file.CreatedBy,
+                Size = file.Size,
+                VersionDate = DateTime.UtcNow
+            };
 
-        // Generate the new path
-        var newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(file.FilePath)!, newName);
+            await _fileVersionRepository.AddAsync(fileVersion);
 
-        // Update file details
-        file.Name = newName;
-        file.FilePath = newPath;
+            // Generate the new path
+            var parentFolderPath = System.IO.Path.GetDirectoryName(file.FilePath);
+            if (parentFolderPath == null)
+                throw new InvalidOperationException("Unable to determine the parent folder path.");
 
-        await _fileItemRepository.UpdateAsync(file);
-        return true;
+            var newFilePath = System.IO.Path.Combine(parentFolderPath, newName);
+
+
+            // Update file details
+            file.Name = newName;
+            file.FilePath = newFilePath;
+
+            // Update file in the database
+            await _fileItemRepository.UpdateAsync(file);
+
+            // Move the file in the file system
+
+            if (System.IO.File.Exists(oldFilePath))
+            {
+                System.IO.File.Move(oldFilePath, newFilePath);
+            }
+            else
+            {
+                // If the file does not exist, rollback the transaction and return false
+                await transaction.RollbackAsync();
+                return false;
+            }
+
+            // Commit the transaction
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            // Rollback the transaction if any error occurs
+            await transaction.RollbackAsync();
+            // Log or handle the exception as needed
+            throw new InvalidOperationException("An error occurred while renaming the file.", ex);
+        }
     }
+
+
 
     public async Task RollbackFileAsync(int fileItemId)
     {
@@ -95,6 +132,9 @@ public class ViewService : IViewService
             }
         }
     }
+
+
+
 
     public async Task<bool> RenameFolderAsync(int folderId, string newName)
     {
