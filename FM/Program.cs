@@ -83,7 +83,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<UserIdProviderService>();
+builder.Services.AddTransient<UserIdProviderService>();
 builder.Services.AddScoped<IFileVersionRepository, FileVersionRepository>();
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
 // Register DbContext with the connection string

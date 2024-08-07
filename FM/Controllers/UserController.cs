@@ -3,15 +3,18 @@ using BLL;
 using DataAccess.DTO;
 using DataAccess.Services;
 using FileManager.Controllers;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Repository;
+using DataAccess.Entities;
 
 namespace FMAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -20,8 +23,10 @@ namespace FMAPI.Controllers
         private readonly IFolderRepository _folderRepository;
         private readonly IFolderService _folderService;
         private readonly IUserRepository _userRepository;
+        private readonly UserIdProviderService _userIdProviderService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public UserController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings,
+        public UserController(IUnitOfWork unitOfWork,IFileItemService fileItemService, IOptions<StorageSettings> storageSettings,
             IFolderRepository folderRepository, IFolderService folderService, IUserService userService, IUserRepository userRepository)
         {
             _fileItemService = fileItemService;
@@ -29,14 +34,15 @@ namespace FMAPI.Controllers
             _folderRepository = folderRepository;
             _folderService = folderService;
             _userService = userService;
-            _userRepository = userRepository;   
-            
-        }
+            _userRepository = userRepository;
+            _unitOfWork = unitOfWork;
 
+        }
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<IEnumerable<User>>> GetAll()
         {
-            return Ok(await _userService.GetAll());
+            var users = await _unitOfWork.Users.GetAll();
+            return Ok(users);
         }
         [HttpPost]
         public async Task<IActionResult> AddUser([FromBody] UserDto user)

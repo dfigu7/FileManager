@@ -1,7 +1,6 @@
 ﻿using DataAccess;
 using DataAccess.DTO;
 using DataAccess.Entities;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Repository;
 
