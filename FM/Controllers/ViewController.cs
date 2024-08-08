@@ -19,7 +19,7 @@ public class ViewController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("{folderId}/files")]
+    [HttpGet("files-in-folder")]
     public async Task<IActionResult> GetFilesInFolder(int folderId)
     {
         try
@@ -53,7 +53,7 @@ public class ViewController : ControllerBase
 
         return Ok(result);
     }
-    [HttpPut("rename/file/{fileId}")]
+    [HttpPut("rename/file")]
     public async Task<IActionResult> RenameFile(int fileId, [FromBody] string newName)
     {
         var result = await _viewService.RenameFileAsync(fileId, newName);
@@ -61,7 +61,7 @@ public class ViewController : ControllerBase
         return Ok();
     }
     
-    [HttpPut("{fileItemId}/rollback")]
+    [HttpPut("rollback-file")]
     [Authorize(Policy = "ManagerOnly")]
 
     public async Task<IActionResult> RollbackFile(int fileItemId)
@@ -70,7 +70,7 @@ public class ViewController : ControllerBase
         return Ok();
     }
 
-    [HttpPut("rename/folder/{folderId}")]
+    [HttpPut("rename/folder")]
     public async Task<IActionResult> RenameFolder(int folderId, [FromBody] string newName)
     {
         var result = await _viewService.RenameFolderAsync(folderId, newName);

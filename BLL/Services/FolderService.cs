@@ -20,10 +20,10 @@ namespace BLL.Services
         private readonly IMapper _mapper;
         private readonly FileManagerDbContext _context;
         private readonly string _storagePath;
-        private readonly int _userId;
-        private readonly  UserIdProviderService _userIdProvider;
+        private readonly UserIdProviderService _userIdProvider;
         private readonly IFolderRepository _folderRepository;
         private readonly IFileItemRepository _fileItemRepository;
+        private readonly int _userId;
 
         public FolderService(
             IUnitOfWork unitOfWork,
@@ -39,12 +39,17 @@ namespace BLL.Services
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _storagePath = storageSettings?.Value.StoragePath ?? throw new ArgumentNullException(nameof(storageSettings));
             _userIdProvider = userIdProvider ?? throw new ArgumentNullException(nameof(userIdProvider));
-            _userId = _userIdProvider.GetUserId() ?? throw new ArgumentNullException(nameof(userIdProvider));
             _folderRepository = folderRepository ?? throw new ArgumentNullException(nameof(folderRepository));
             _fileItemRepository = fileItemRepository ?? throw new ArgumentNullException(nameof(fileItemRepository));
-        }
+            _userId = _userIdProvider.GetUserId() ??  throw new ArgumentNullException("User ID not found.");
+        
+    }
 
-        public async Task<FolderModel> GetFolderByIdAsync(int id)
+       
+    
+
+
+    public async Task<FolderModel> GetFolderByIdAsync(int id)
         {
             var folder = await _unitOfWork.Folders.GetByIdAsync(id);
 
@@ -174,7 +179,7 @@ namespace BLL.Services
             {
                 var folder = await _unitOfWork.Folders.GetByIdAsync(folderId);
                 var parentFolder = await _context.Folders.FindAsync(parentFolderId);
-                
+
                 folder.CreatedBy = (int)_userId;
 
                 if (folder == null)

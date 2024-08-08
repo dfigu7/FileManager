@@ -46,16 +46,19 @@ namespace Repository
             return user;
         }
 
-        public Task<User> UpdateUser(User user)
+        public async Task<User> GetByIdAsync(int userId)
         {
-            // Implement the method to update an existing user in the data source
-            throw new NotImplementedException();
+            return await _context.Users.FindAsync(userId);
         }
 
-        public Task<User> DeleteUser(int id)
+        public async Task DeleteAsync(int userId)
         {
-            // Implement the method to delete a user by id from the data source
-            throw new NotImplementedException();
+            var user = await GetByIdAsync(userId);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

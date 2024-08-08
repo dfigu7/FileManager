@@ -20,6 +20,7 @@ builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("St
 
 // Add services to the container
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddTransient<UserIdProviderService>();
 builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddScoped<IFileItemService, FileItemService>();
 builder.Services.AddScoped<IViewService, ViewService>();
@@ -33,7 +34,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ILoginRepository, LoginRepository>();
 builder.Services.AddScoped<ILoginService, LoginService>();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddTransient<UserIdProviderService>();
+
 builder.Services.AddScoped<IFileVersionRepository, FileVersionRepository>();
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
 builder.Services.AddControllers()

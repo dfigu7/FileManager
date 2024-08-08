@@ -12,9 +12,10 @@ namespace Repository
     public interface IUserRepository
     {
         Task<IEnumerable<User>> GetAll();
-        Task<User> GetById(int id);
+       
         Task<User> AddUser(UserDto user);
-        Task<User> UpdateUser(User user);
-        Task<User> DeleteUser(int id);
+       
+        Task<User> GetByIdAsync(int userId);
+        Task DeleteAsync(int userId);
     }
 }

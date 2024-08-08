@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 
+namespace BLL.Services;
+
 public sealed class UserIdProviderService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;

@@ -15,5 +15,6 @@ namespace DataAccess.Services
         Task<User> AddUser(UserDto user);
         Task<User> UpdateUser(UserDto user);
         Task<User> DeleteUser(int id);
+        Task<bool> DeleteUserAsync(int id);
     }
 }

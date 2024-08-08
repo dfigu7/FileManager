@@ -14,25 +14,21 @@ namespace FMAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        private readonly IFileItemService _fileItemService;
-        private readonly StorageSettings _storageSettings;
-        private readonly IFolderRepository _folderRepository;
-        private readonly IFolderService _folderService;
+
+       
+    
         private readonly IUserRepository _userRepository;
-        private readonly UserIdProviderService _userIdProviderService;
+       
         private readonly IUnitOfWork _unitOfWork;
 
-        public UserController(IUnitOfWork unitOfWork,IFileItemService fileItemService, IOptions<StorageSettings> storageSettings,
-            IFolderRepository folderRepository, IFolderService folderService, IUserService userService, IUserRepository userRepository)
+        public UserController(IUnitOfWork unitOfWork,   IUserService userService, IUserRepository userRepository)
         {
-            _fileItemService = fileItemService;
-            _storageSettings = storageSettings.Value;
-            _folderRepository = folderRepository;
-            _folderService = folderService;
+    
+           
             _userService = userService;
             _userRepository = userRepository;
             _unitOfWork = unitOfWork;
@@ -49,6 +45,19 @@ namespace FMAPI.Controllers
         {
             var newUser = await _userService.AddUser(user);
             return Ok(newUser);
+        }
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "ManagerOnly")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            var result = await _userService.DeleteUserAsync(id);
+
+            if (!result)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            return NoContent();
         }
     }
 }

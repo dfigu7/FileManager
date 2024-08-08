@@ -16,6 +16,7 @@ namespace BLL.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private IUserService _userServiceImplementation;
 
         public UserService(IUserRepository userRepository, IMapper mapper)
         {
@@ -49,8 +50,17 @@ namespace BLL.Services
 
         public Task<User> DeleteUser(int id)
         {
-            throw new NotImplementedException();
+            return _userServiceImplementation.DeleteUser(id);
         }
+
+        public async Task<bool> DeleteUserAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null) return false;
+
+        await _userRepository.DeleteAsync(userId);
+        return true;
+    }
 
 
 
