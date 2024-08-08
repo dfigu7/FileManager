@@ -17,14 +17,17 @@ namespace BLL.Services
         private readonly FileManagerDbContext _context;
         private readonly int? _userId;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        
+        private readonly IFolderRepository _folderRepository;
+       
 
-        public FileItemService(IFileItemRepository fileItemRepository, IMapper mapper, UserIdProviderService userIdProvider)
+        public FileItemService(IFileItemRepository fileItemRepository, IMapper mapper, UserIdProviderService userIdProvider, IFolderRepository folderRepository, FileManagerDbContext context)
         {
             _fileItemRepository = fileItemRepository;
             _mapper = mapper;
             _userId = userIdProvider.GetUserId();
-           
+            _folderRepository = folderRepository;
+            _context = context;
+
         }
         public async Task<bool> FileExistsAsync(string name, int folderId)
         {
@@ -59,21 +62,89 @@ namespace BLL.Services
             await _fileItemRepository.AddAsync(fileItem);
         }
 
-        public async Task DeleteFileAsync(int id)
+        public async Task<bool> DeleteFileAsync(int fileId)
         {
-            await _fileItemRepository.DeleteAsync(id);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                
+                var fileItem = await _fileItemRepository.GetByIdAsync(fileId);
+                if (fileItem == null) return false;
+
+                
+                var filePath = fileItem.FilePath;
+
+               
+                await _fileItemRepository.DeleteAsync(fileId);
+
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                }
+
+                
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
-        public async Task MoveFileAsync(int fileId, int targetFolderId)
-        {
-            var file = await _fileItemRepository.GetByIdAsync(fileId) ?? throw new Exception("File not found");
-            file.FolderId = targetFolderId;
-            file.FilePath = await _fileItemRepository.GetFullPath(targetFolderId) + "/" + file.Name;
 
-            await _fileItemRepository.UpdateAsync(file);
+
+        public async Task<bool> MoveFileAsync(int fileId, int folderId)
+        {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var file = await _fileItemRepository.GetByIdAsync(fileId);
+                if (file == null) return false;
+
+                var oldFilePath = file.FilePath;
+
+                // Gets the new folder
+                var newFolder = await _folderRepository.GetByIdAsync(folderId);
+                if (newFolder == null) throw new InvalidOperationException("The destination folder does not exist.");
+
+                // Generates the new file path
+                var newFilePath = System.IO.Path.Combine(newFolder.Path, file.Name);
+
+                // Updates file details
+                file.FolderId = folderId;
+                file.FilePath = newFilePath;
+
+                // Updates file in the database
+                await _fileItemRepository.UpdateAsync(file);
+
+                // Moves the file in the file system
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    System.IO.File.Move(oldFilePath, newFilePath);
+                }
+                else
+                {
+                    throw new FileNotFoundException("The file to move does not exist.");
+                }
+
+                
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                
+                await transaction.RollbackAsync();
+              
+                throw new InvalidOperationException("An error occurred while moving the file.", ex);
+            }
         }
+
 
     }
 
-    
+
 }

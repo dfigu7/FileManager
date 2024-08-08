@@ -98,45 +98,23 @@ namespace BLL.Services
 
         public async Task<bool> DeleteFolderAsync(int folderId)
         {
+            // Start the transaction at the top-level
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                var folder = await _folderRepository.GetByIdAsync(folderId);
-                if (folder == null) return false;
+                // Start the recursive deletion process
+                var result = await DeleteFolderRecursiveAsync(folderId);
 
-                var folderPath = folder.Path;
-
-                // Get all child files and folders
-                var childFiles = await _fileItemRepository.GetFilesByFolderIdAsync(folderId);
-                var childFolders = await _folderRepository.GetSubFoldersAsync(folderId);
-
-                // Delete child files from the database and file system
-                foreach (var file in childFiles)
+                if (result)
                 {
-                    await _fileItemRepository.DeleteAsync(file.Id);
-                    if (File.Exists(file.FilePath))
-                    {
-                        File.Delete(file.FilePath);
-                    }
+                    await transaction.CommitAsync();
+                }
+                else
+                {
+                    await transaction.RollbackAsync();
                 }
 
-                // Recursively delete child folders
-                foreach (var childFolder in childFolders)
-                {
-                    await DeleteFolderAsync(childFolder.Id);
-                }
-
-                // Delete the folder from the database
-                await _folderRepository.DeleteAsync(folder.Id);
-
-                // Delete the folder from the file system
-                if (Directory.Exists(folderPath))
-                {
-                    Directory.Delete(folderPath, true);
-                }
-
-                await transaction.CommitAsync();
-                return true;
+                return result;
             }
             catch
             {
@@ -144,6 +122,49 @@ namespace BLL.Services
                 throw;
             }
         }
+
+        private async Task<bool> DeleteFolderRecursiveAsync(int folderId)
+        {
+            var folder = await _folderRepository.GetByIdAsync(folderId);
+            if (folder == null) return false;
+
+            var folderPath = folder.Path;
+
+            // Recursively delete child folders first
+            var childFolders = await _folderRepository.GetSubFoldersAsync(folderId);
+            foreach (var childFolder in childFolders)
+            {
+                var result = await DeleteFolderRecursiveAsync(childFolder.Id);
+                if (!result)
+                {
+                    return false; // Rollback if any child folder deletion fails
+                }
+            }
+
+            // Delete child files after deleting child folders
+            var childFiles = await _fileItemRepository.GetFilesByFolderIdAsync(folderId);
+            foreach (var file in childFiles)
+            {
+                await _fileItemRepository.DeleteAsync(file.Id);
+                if (File.Exists(file.FilePath))
+                {
+                    File.Delete(file.FilePath);
+                }
+            }
+
+            // Delete the folder from the database
+            await _folderRepository.DeleteAsync(folder.Id);
+
+            // Delete the folder from the file system
+            if (Directory.Exists(folderPath))
+            {
+                Directory.Delete(folderPath, true);
+            }
+
+            return true;
+        }
+
+
 
 
         public async Task MoveFolderAsync(int folderId, int parentFolderId)
