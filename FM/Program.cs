@@ -15,10 +15,27 @@ using Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register the configuration section for StorageSettings
+//configuration section for StorageSettings
 builder.Services.Configure<StorageSettings>(builder.Configuration.GetSection("StorageSettings"));
 
 // Add services to the container
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddScoped<IFileItemService, FileItemService>();
+builder.Services.AddScoped<IViewService, ViewService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IFolderService, FolderService>();
+builder.Services.AddScoped<IFileItemService, FileItemService>();
+builder.Services.AddScoped<IFileItemRepository, FileItemRepository>();
+builder.Services.AddScoped<IFolderRepository, FolderRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ILoginRepository, LoginRepository>();
+builder.Services.AddScoped<ILoginService, LoginService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<UserIdProviderService>();
+builder.Services.AddScoped<IFileVersionRepository, FileVersionRepository>();
+builder.Services.AddScoped<IViewRepository, ViewRepository>();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -69,23 +86,7 @@ builder.Services.AddCors(options => options.AddPolicy(name: "NgOrigins",
 
 
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddAutoMapper(typeof(Program));
-builder.Services.AddScoped<IFileItemService, FileItemService>();
-builder.Services.AddScoped<IViewService, ViewService>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IFolderService, FolderService>();
-builder.Services.AddScoped<IFileItemService, FileItemService>();
-builder.Services.AddScoped<IFileItemRepository, FileItemRepository>();
-builder.Services.AddScoped<IFolderRepository, FolderRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ILoginRepository, LoginRepository>();
-builder.Services.AddScoped<ILoginService, LoginService>();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddTransient<UserIdProviderService>();
-builder.Services.AddScoped<IFileVersionRepository, FileVersionRepository>();
-builder.Services.AddScoped<IViewRepository, ViewRepository>();
+
 // Register DbContext with the connection string
 builder.Services.AddDbContext<FileManagerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

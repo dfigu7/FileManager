@@ -55,7 +55,7 @@ public class ViewService : IViewService
 
             var oldFilePath = file.FilePath;
 
-            // Create a file version before renaming
+            // Creates a file version before renaming
             var fileVersion = new FileVersion
             {
                 FileItemId = file.Id,
@@ -72,7 +72,7 @@ public class ViewService : IViewService
 
             await _fileVersionRepository.AddAsync(fileVersion);
 
-            // Generate the new path
+            // Generates the new path
             var parentFolderPath = System.IO.Path.GetDirectoryName(file.FilePath);
             if (parentFolderPath == null)
                 throw new InvalidOperationException("Unable to determine the parent folder path.");
@@ -80,14 +80,14 @@ public class ViewService : IViewService
             var newFilePath = System.IO.Path.Combine(parentFolderPath, newName);
 
 
-            // Update file details
+            // Updates file details
             file.Name = newName;
             file.FilePath = newFilePath;
 
-            // Update file in the database
+            // Updates file in the database
             await _fileItemRepository.UpdateAsync(file);
 
-            // Move the file in the file system
+            // Moves the file in the file system
 
             if (System.IO.File.Exists(oldFilePath))
             {
@@ -100,7 +100,7 @@ public class ViewService : IViewService
                 return false;
             }
 
-            // Commit the transaction
+           
             await transaction.CommitAsync();
             return true;
         }
@@ -108,7 +108,7 @@ public class ViewService : IViewService
         {
             // Rollback the transaction if any error occurs
             await transaction.RollbackAsync();
-            // Log or handle the exception as needed
+            
             throw new InvalidOperationException("An error occurred while renaming the file.", ex);
         }
     }
