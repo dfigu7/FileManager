@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using DataAccess.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using System.IO.Compression;
 
 namespace BLL.Services
 {
@@ -24,6 +25,7 @@ namespace BLL.Services
         private readonly IFolderRepository _folderRepository;
         private readonly IFileItemRepository _fileItemRepository;
         private readonly int _userId;
+        
 
         public FolderService(
             IUnitOfWork unitOfWork,
@@ -211,5 +213,82 @@ namespace BLL.Services
                 throw;
             }
         }
-    }
-}
+
+        public async Task<bool> ZipFolderAsync(int folderId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var folder = await _folderRepository.GetByIdAsync(folderId);
+                if (folder == null) return false;
+
+                var folderPath = folder.Path;
+                var tempZipPath = Path.Combine(Path.GetTempPath(), $"{folderPath}.zip");
+
+                // Zip the folder
+                ZipFile.CreateFromDirectory(folderPath, tempZipPath);
+
+                // Save the zip file information to the database (if needed)
+                // ...
+
+                // Move the zip file to the desired location
+                var finalZipPath = Path.Combine(folderPath, $"{folderPath}.zip");
+                File.Move(tempZipPath, finalZipPath);
+
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<bool> UnzipFolderAsync(int folderId)
+                {
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    try
+                    {
+                        var folder = await _folderRepository.GetByIdAsync(folderId);
+                        if (folder == null) return false;
+
+                        var folderPath = folder.Path;
+                        var zipFilePath = Path.Combine(folderPath, $".zip");
+                        var tempExtractPath = Path.Combine(Path.GetTempPath(), $"{folderId}_extracted");
+
+                        // Create temp extraction directory
+                        Directory.CreateDirectory(tempExtractPath);
+
+                        // Unzip the folder
+                        ZipFile.ExtractToDirectory(zipFilePath, tempExtractPath);
+
+                        // Move the extracted contents to the final location
+                        foreach (var file in Directory.GetFiles(tempExtractPath))
+                        {
+                            var destFile = Path.Combine(folderPath, Path.GetFileName(file));
+                            File.Move(file, destFile);
+                        }
+                        foreach (var subFolder in Directory.GetDirectories(tempExtractPath))
+                        {
+                            var destFolder = Path.Combine(folderPath, Path.GetFileName(subFolder));
+                            Directory.Move(subFolder, destFolder);
+                        }
+
+                        // Clean up temporary directory
+                        Directory.Delete(tempExtractPath, true);
+
+                        await transaction.CommitAsync();
+                        return true;
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+                }
+
+            }
+
+        }
+
