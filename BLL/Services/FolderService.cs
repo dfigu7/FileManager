@@ -287,8 +287,36 @@ namespace BLL.Services
                         throw;
                     }
                 }
+        public async Task<string> ZipFilesByDateAsync(DateTime date)
+        {
+            if (date.Kind == DateTimeKind.Unspecified)
+            {
+                date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
+            }
+            var files = await _fileItemRepository.GetFilesByDateAsync(date);
 
+            if (files == null || !files.Any()) return null;
+
+            var tempFolder = Path.Combine(Path.GetTempPath(), $"Files_{date:yyyyMMdd}");
+            Directory.CreateDirectory(tempFolder);
+
+            foreach (var file in files)
+            {
+                var destinationPath = Path.Combine(tempFolder, Path.GetFileName(file.FilePath));
+                File.Copy(file.FilePath, destinationPath);
             }
 
+            var zipFilePath = Path.Combine(Path.GetTempPath(), $"Files_{date:yyyyMMdd}.zip");
+            ZipFile.CreateFromDirectory(tempFolder, zipFilePath);
+
+            // Clean up temporary folder after zipping
+            Directory.Delete(tempFolder, true);
+
+            return zipFilePath;
         }
+
+
+    }
+
+}
 

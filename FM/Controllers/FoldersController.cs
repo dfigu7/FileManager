@@ -94,5 +94,21 @@ namespace FMAPI.Controllers
 
             return Ok(new { message = "Folder unzipped successfully." });
         }
+        [HttpGet("zip-by-date")]
+        public async Task<IActionResult> ZipFilesByDate([FromQuery] DateTime date)
+        {
+            var zipFilePath = await _folderService.ZipFilesByDateAsync(date);
+
+            if (string.IsNullOrEmpty(zipFilePath))
+            {
+                return NotFound(new { message = "No files found for the specified date." });
+            }
+
+            byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
+
+            // Return the zip file for download
+            return File(zipFileBytes, "application/zip", $"Files_{date:yyyyMMdd}.zip");
+        }
+
     }
 }

@@ -10,7 +10,7 @@ namespace Repository
         Task<FileItem> AddAsync(FileItem fileItem);
         Task AddFileItemAsync(FileItem fileItem);
         Task<FileItem> GetFileItemByNameAsync(string fileName);
-       
+
         Task<IEnumerable<FileItem>> GetAllAsync();
         Task<bool> FileExistsAsync(string name, int folderId);
         Task DeleteAsync(int id);
@@ -21,5 +21,6 @@ namespace Repository
         Task<IEnumerable<FileItem>> SearchByNameAsync(string name);
         Task<IEnumerable<FileItem>> GetFilesByFolderIdAsync(int folderId);
         object GetFilesByFolderId(int folderId);
+        Task<IEnumerable<FileItem>> GetFilesByDateAsync(DateTime date);
     }
 }

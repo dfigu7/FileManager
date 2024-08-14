@@ -8,10 +8,10 @@ public class FileItem
     public int? FolderId { get; set; }
     public long Size { get; set; }
     public string ContentType { get; set; } = null!;
-    public int CreatedBy { get; set; }
+    public int CreatedBy { get; set; } 
 
     public Folder Folder { get; set; } = null!;
-    public DateTime DateCreated { get; set; }
-    public DateTime DateChanged { get; set; }
+    public DateTime DateCreated { get; set; } = DateTime.UtcNow;
+    public DateTime DateChanged { get; set; } = DateTime.UtcNow;
     public IEnumerable<FileVersion>? FileVersions { get; set; }
 }

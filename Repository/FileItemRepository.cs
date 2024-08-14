@@ -93,5 +93,16 @@ namespace Repository
                 await context.SaveChangesAsync();
             }
         }
+        public async Task<IEnumerable<FileItem>> GetFilesByDateAsync(DateTime date)
+        {
+            if (date.Kind == DateTimeKind.Unspecified)
+            {
+                date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
+            }
+            return await context.FileItems
+                .Where(f => f.DateCreated.Date == date.Date)
+                .ToListAsync();
+        }
+
     }
 }
