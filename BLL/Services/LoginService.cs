@@ -17,9 +17,9 @@ namespace BLL.Services
             _loginRepository = loginRepository;
         }
 
-        public async Task<string> Login(LoginDto requset)
+        public async Task<object> Login(LoginDto request)
         {
-            return await _loginRepository.Login(requset);
+            return await _loginRepository.Login(request);
         }
     }
 }

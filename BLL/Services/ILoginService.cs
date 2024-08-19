@@ -9,6 +9,6 @@ namespace BLL.Services
 {
     public interface ILoginService
     {
-        Task<string> Login(LoginDto requset);
+        Task<object> Login(LoginDto requset);
     }
 }

@@ -68,4 +68,8 @@ public class FolderRepository : Repository<Folder>, IFolderRepository
 
         return await _context.Folders.Where(f => f.ParentFolderId == parentId).ToListAsync();
     }
+    public async Task<Folder> GetFolderByIdAsync(int? folderId)
+    {
+        return await _context.Folders.FindAsync(folderId);
+    }
 }

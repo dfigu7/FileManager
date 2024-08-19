@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using DataAccess;
 using System.IO;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Repository
 {
@@ -103,6 +104,27 @@ namespace Repository
                 .Where(f => f.DateCreated.Date == date.Date)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<FileItem>> GetFilesByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            if (startDate.Kind == DateTimeKind.Unspecified)
+            {
+                startDate = DateTime.SpecifyKind(startDate, DateTimeKind.Utc);
+            }
+
+            if (endDate.Kind == DateTimeKind.Unspecified)
+            {
+                endDate = DateTime.SpecifyKind(endDate, DateTimeKind.Utc);
+            }
+
+            return await context.FileItems
+                .Where(f => f.DateCreated >= startDate && f.DateCreated <= endDate)
+                .ToListAsync();
+        }
+
+
+
+
 
     }
 }

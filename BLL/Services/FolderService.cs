@@ -3,14 +3,9 @@ using DataAccess;
 using DataAccess.Entities;
 using Repository;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+
 using DataAccess.DTO;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+
 using System.IO.Compression;
 
 namespace BLL.Services
@@ -287,33 +282,65 @@ namespace BLL.Services
                         throw;
                     }
                 }
-        public async Task<string> ZipFilesByDateAsync(DateTime date)
+        public async Task<string> ZipFilesByDateAsync(DateTime date, DateTime? startDate = null, DateTime? endDate = null)
         {
             if (date.Kind == DateTimeKind.Unspecified)
             {
                 date = DateTime.SpecifyKind(date, DateTimeKind.Utc);
             }
-            var files = await _fileItemRepository.GetFilesByDateAsync(date);
+
+           
+            DateTime effectiveStartDate = startDate ?? date;
+            DateTime effectiveEndDate = endDate ?? date;
+
+            // Generate the zip file name based on the date range
+            string zipFileName = startDate.HasValue && endDate.HasValue
+                ? $"Files_{effectiveStartDate:yyyyMMdd}_to_{effectiveEndDate:yyyyMMdd}.zip"
+                : $"Files_{date:yyyyMMdd}.zip";
+
+            var zipFilePath = Path.Combine(Path.GetTempPath(), zipFileName);
+
+            // If the zip file already exists, return its path directly
+            if (File.Exists(zipFilePath))
+            {
+                return zipFilePath;
+            }
+
+            // Fetch files by date or by range
+            var files = startDate.HasValue && endDate.HasValue
+                ? await _fileItemRepository.GetFilesByDateRangeAsync(effectiveStartDate, effectiveEndDate)
+                : await _fileItemRepository.GetFilesByDateAsync(date);
 
             if (files == null || !files.Any()) return null;
 
-            var tempFolder = Path.Combine(Path.GetTempPath(), $"Files_{date:yyyyMMdd}");
+            // Create a temporary folder for storing files before zipping
+            var tempFolder = Path.Combine(Path.GetTempPath(), $"Files_{DateTime.Now:yyyyMMdd_HHmmss}_Temp");
             Directory.CreateDirectory(tempFolder);
 
             foreach (var file in files)
             {
-                var destinationPath = Path.Combine(tempFolder, Path.GetFileName(file.FilePath));
+                // Fetch the folder structure or folder name based on the file's folder ID
+                var folder = await _folderRepository.GetFolderByIdAsync(file.FolderId);
+                var folderName = folder?.Name ?? "storage";
+
+                // Rename the file in the format: "storage_folderName_fileName"
+                var fileName = Path.GetFileName(file.FilePath); // Extract original file name
+                var renamedFileName = $"storage_{folderName}_{fileName}"; // Create the new name
+
+                // Copy the file to the temp folder with the new name
+                var destinationPath = Path.Combine(tempFolder, renamedFileName);
                 File.Copy(file.FilePath, destinationPath);
             }
 
-            var zipFilePath = Path.Combine(Path.GetTempPath(), $"Files_{date:yyyyMMdd}.zip");
+            // Zip the folder into the zip file
             ZipFile.CreateFromDirectory(tempFolder, zipFilePath);
 
-            // Clean up temporary folder after zipping
+            // Clean up the temporary folder after zipping
             Directory.Delete(tempFolder, true);
 
             return zipFilePath;
         }
+
 
 
     }

@@ -95,20 +95,29 @@ namespace FMAPI.Controllers
             return Ok(new { message = "Folder unzipped successfully." });
         }
         [HttpGet("zip-by-date")]
-        public async Task<IActionResult> ZipFilesByDate([FromQuery] DateTime date)
+        public async Task<IActionResult> ZipFilesByDate([FromQuery] DateTime? startDate = null, [FromQuery] DateTime? endDate = null)
         {
-            var zipFilePath = await _folderService.ZipFilesByDateAsync(date);
+            // Use the provided startDate and endDate, or default to a single specific date
+            DateTime date = startDate ?? DateTime.UtcNow; // Fallback if no date is provided
+
+            // Call the updated ZipFilesByDateAsync method from the service
+            var zipFilePath = await _folderService.ZipFilesByDateAsync(date, startDate, endDate);
 
             if (string.IsNullOrEmpty(zipFilePath))
             {
-                return NotFound(new { message = "No files found for the specified date." });
+                return NotFound(new { message = "No files found for the specified date or date range." });
             }
 
             byte[] zipFileBytes = System.IO.File.ReadAllBytes(zipFilePath);
 
             // Return the zip file for download
-            return File(zipFileBytes, "application/zip", $"Files_{date:yyyyMMdd}.zip");
+            var zipFileName = startDate.HasValue && endDate.HasValue
+                ? $"Files_{startDate:yyyyMMdd}_to_{endDate:yyyyMMdd}.zip"
+                : $"Files_{date:yyyyMMdd}.zip";
+
+            return File(zipFileBytes, "application/zip", zipFileName);
         }
+
 
     }
 }

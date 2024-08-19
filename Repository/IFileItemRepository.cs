@@ -22,5 +22,7 @@ namespace Repository
         Task<IEnumerable<FileItem>> GetFilesByFolderIdAsync(int folderId);
         object GetFilesByFolderId(int folderId);
         Task<IEnumerable<FileItem>> GetFilesByDateAsync(DateTime date);
+        Task<IEnumerable<FileItem>> GetFilesByDateRangeAsync(DateTime startDate, DateTime endDate);
+
     }
 }

@@ -14,5 +14,6 @@ public interface IFolderService
     Task<bool> ZipFolderAsync(int folderId);
     
     Task<bool> UnzipFolderAsync(int folderId);
-    Task<string> ZipFilesByDateAsync(DateTime date);
+    Task<string> ZipFilesByDateAsync(DateTime date, DateTime? startDate, DateTime? endDate );
+   
 }
