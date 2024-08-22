@@ -1,4 +1,4 @@
-﻿// FileManager.BLL/Models/FolderModel.cs
+﻿
 
 namespace DataAccess.DTO;
 

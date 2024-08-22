@@ -38,8 +38,14 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IFileVersionRepository, FileVersionRepository>();
 builder.Services.AddScoped<IViewRepository, ViewRepository>();
 builder.Services.AddControllers();
-    
- builder.Services.AddAuthorization(options =>
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
+
+builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("ManagerOnly", policy => policy.RequireRole("Manager"));
 });

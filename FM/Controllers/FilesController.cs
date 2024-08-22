@@ -21,7 +21,7 @@ namespace FileManager.Controllers
         private readonly IFolderRepository _folderRepository;
         private readonly IFolderService _folderService;
         private readonly int? _userId;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+     
 
 
         public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings,
