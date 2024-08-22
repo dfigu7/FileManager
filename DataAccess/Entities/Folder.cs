@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Text.Json.Serialization;
 
 namespace DataAccess.Entities;
 
@@ -14,6 +15,7 @@ public class Folder
     public ICollection<Folder>? SubFolders { get; set; }
     public DateTime DateCreated { get; set; } = DateTime.UtcNow;
     public DateTime DateChanged { get; set; } = DateTime.UtcNow;
+ 
     public ICollection<FileItem> Files { get; set; } = [];
     public string? Path { get; set; }
 }
