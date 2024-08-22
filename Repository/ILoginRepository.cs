@@ -10,6 +10,6 @@ namespace Repository
 {
     public interface ILoginRepository
     {
-        Task<string> Login(LoginDto requset);
+        Task<string> Login(LoginDto request);
     }
 }

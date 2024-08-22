@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using DataAccess.DTO;
+﻿using DataAccess.DTO;
 using Repository;
 
 namespace BLL.Services
@@ -19,7 +14,9 @@ namespace BLL.Services
 
         public async Task<object> Login(LoginDto request)
         {
-            return await _loginRepository.Login(request);
+            var token = await _loginRepository.Login(request);
+
+            return new { accessToken = token };
         }
     }
 }
