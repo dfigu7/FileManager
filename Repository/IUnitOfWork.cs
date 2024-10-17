@@ -1,10 +1,11 @@
 ﻿// FileManager.DataAccess/Repositories/IUnitOfWork.cs
 
-namespace DataAccess.Repositories;
+namespace Repository;
 
 public interface IUnitOfWork : IDisposable
 {
-    IFileRepository Files { get; }
+    IUserRepository Users { get; }
+    IFileItemRepository Files { get; }
     IFolderRepository Folders { get; }
     Task<int> CompleteAsync();
 }

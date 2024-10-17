@@ -1,51 +1,218 @@
-﻿// FileManager/Controllers/FilesController.cs
-
-using BLL.Models;
+﻿using BLL;
 using BLL.Services;
+using DataAccess.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
-namespace FMAPI.Controllers;
+using DataAccess.DTO;
+using Microsoft.AspNetCore.Authorization;
+using Repository;
 
-[Route("api/[controller]")]
-[ApiController]
-public class FilesController(IFileService fileService) : ControllerBase
+namespace FileManager.Controllers
 {
-    private readonly IFileService _fileService = fileService;
-
-    [HttpGet("{id}")]
-    public async Task<ActionResult<FileModel>> GetFileById(int id)
+    [ApiController]
+    
+    [Route("api/[controller]")]
+    [Authorize]
+    public class FilesController : ControllerBase
     {
-        var file = await _fileService.GetFileByIdAsync(id);
-        if (file == null) return NotFound();
-        return Ok(file);
-    }
+        private readonly IFileItemService _fileItemService;
+        private readonly StorageSettings _storageSettings;
+        private readonly IFolderRepository _folderRepository;
+        private readonly IFolderService _folderService;
+        private readonly int? _userId;
+     
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<FileModel>>> GetAllFiles()
-    {
-        var files = await _fileService.GetAllFilesAsync();
-        return Ok(files);
-    }
 
-    [HttpPost]
-    public async Task<ActionResult> AddFile([FromBody] FileModel fileModel)
-    {
-        await _fileService.AddFileAsync(fileModel);
-        return Ok();
-        //return CreatedAtAction(nameof(GetFileById), new { id = fileModel.Id }, fileModel);
-    }
+        public FilesController(IFileItemService fileItemService, IOptions<StorageSettings> storageSettings,
+            IFolderRepository folderRepository, IFolderService folderService, UserIdProviderService userIdProvider)
+        {
+            _fileItemService = fileItemService;
+            _storageSettings = storageSettings.Value;
+            _folderRepository = folderRepository;
+            _folderService = folderService;
+            _userId = userIdProvider.GetUserId();
+        }
 
-    [HttpDelete("{id}")]
-    public async Task<ActionResult> DeleteFile(int id)
-    {
-        await _fileService.DeleteFileAsync(id);
-        return NoContent();
-    }
+        [HttpPost("upload")]
+        public async Task<IActionResult> UploadFile(IFormFile file)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-    [HttpPut("move")]
-    public async Task<ActionResult> MoveFile(int fileId, int folderId)
-    {
-        await _fileService.MoveFileAsync(fileId, folderId);
-        return NoContent();
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+            
+            var uploadPath = _storageSettings.StoragePath;
+
+            if (!Directory.Exists(uploadPath))
+            {
+                Directory.CreateDirectory(uploadPath);
+            }
+
+            var filePath = Path.Combine(uploadPath, file.FileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Save file metadata to the database
+            var fileItem = new FileItem
+            {
+                Name = file.FileName,
+                FilePath = filePath,
+                Size = file.Length,
+                ContentType = file.ContentType,
+                CreatedBy = (int)_userId,
+            };
+
+            await _fileItemService.AddFileItemAsync(fileItem);
+
+            return Ok(new { FilePath = filePath });
+        }
+
+
+        [HttpGet("download/{fileName}")]
+        public async Task<IActionResult> DownloadFile(string fileName)
+        {
+            var fileItem = await _fileItemService.GetFileItemByNameAsync(fileName);
+
+            if (fileItem == null)
+            {
+                return NotFound();
+            }
+
+            var memory = new MemoryStream();
+            using (var stream = new FileStream(fileItem.FilePath, FileMode.Open))
+            {
+                await stream.CopyToAsync(memory);
+            }
+
+            memory.Position = 0;
+            return File(memory, GetMimeType(fileItem.FilePath), fileItem.Name);
+        }
+
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<FileModel>> GetFileById(int id)
+        {
+            var file = await _fileItemService.GetByIdAsync(id);
+            if (file == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(file);
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<FileModel>>> GetAllFiles()
+        {
+            var files = await _fileItemService.GetAllAsync();
+            return Ok(files);
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> AddFile([FromBody] FileModel fileModel)
+        {
+            if (fileModel == null)
+            {
+                return BadRequest(ModelState);
+            }
+            var folder = await _folderRepository.GetByIdAsync(fileModel.FolderId);
+            if (await _fileItemService.FileExistsAsync(fileModel.Name, fileModel.FolderId))
+            {
+                return Conflict(new { message = "A file with the same name already exists in this folder." });
+            }
+
+            if (folder == null)
+            {
+                return BadRequest("Invalid folder ID.");
+            }
+
+
+            var folderPath = Path.Combine("C:\\Users\\dF\\Documents\\storage", folder.Name);
+            var filePath = Path.Combine(folderPath, fileModel.Name);
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            //  MIME type
+            var mimeType = GetMimeType(fileModel.Name);
+
+            // Create a dummy file for demonstration purposes
+            System.IO.File.WriteAllText(filePath, "Hello World");
+
+            var fileItem = new FileItem
+            {
+                Name = fileModel.Name,
+                ContentType = mimeType,
+                Size = new FileInfo(filePath).Length,
+                FilePath = filePath,
+                FolderId = fileModel.FolderId,
+                DateCreated = DateTime.UtcNow,
+                DateChanged = DateTime.UtcNow
+            };
+
+            await _fileItemService.AddFileAsync(fileItem);
+
+            return CreatedAtAction(nameof(GetFileById), new { id = fileItem.Id }, fileItem);
+        }
+
+        private static string GetMimeType(string fileName)
+        {
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            return GetMimeTypes().TryGetValue(extension, out var mimeType) ? mimeType : "application/octet-stream";
+        }
+
+        private static Dictionary<string, string> GetMimeTypes()
+        {
+            return new Dictionary<string, string>
+            {
+                { ".txt", "text/plain" },
+                { ".pdf", "application/pdf" },
+                { ".doc", "application/vnd.ms-word" },
+                { ".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document" },
+                { ".xls", "application/vnd.ms-excel" },
+                { ".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
+                { ".png", "image/png" },
+                { ".jpg", "image/jpeg" },
+                { ".jpeg", "image/jpeg" },
+                { ".gif", "image/gif" },
+                { ".csv", "text/csv" }
+            };
+        }
+
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFile(int id)
+        {
+            await _fileItemService.DeleteFileAsync(id);
+            return NoContent();
+        }
+
+        [HttpPut("moveFile")]
+        public async Task<IActionResult> MoveFile(int fileId, int FolderId)
+        {
+            try
+            {
+                await _fileItemService.MoveFileAsync(fileId, FolderId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+
+
+        }
     }
 }

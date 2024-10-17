@@ -1,6 +1,5 @@
-﻿// FileManager.BLL/Services/IFolderService.cs
-
-using BLL.Models;
+﻿using DataAccess.DTO;
+using Microsoft.AspNetCore.Http;
 
 namespace BLL.Services;
 
@@ -10,6 +9,11 @@ public interface IFolderService
     Task<IEnumerable<FolderModel>> GetAllFoldersAsync();
     Task AddFolderAsync(FolderModel folder);
     Task RenameFolderAsync(int id, string newName);
-    Task DeleteFolderAsync(int id);
+    Task<bool> DeleteFolderAsync(int id);
     Task MoveFolderAsync(int folderId, int parentFolderId);
+    Task<bool> ZipFolderAsync(int folderId);
+    
+    Task<bool> UnzipFolderAsync(int folderId);
+    Task<string> ZipFilesByDateAsync(DateTime date, DateTime? startDate, DateTime? endDate );
+   
 }
